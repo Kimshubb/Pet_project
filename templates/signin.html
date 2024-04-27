@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang='eng'>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Sign In</title>
+	</head>
+	<body>
+		<h2>Sign in</h2>
+		{% with messages = get_flashed_messages(with_categories=true) %}
+				{% if messages %}
+					{% for category, message in messages %}
+						<div class="alert alert-{{ category }}">
+							{{ message }}
+						</div>
+					{% endfor %}
+				{% endif %}
+			{% endwith %}
+		<form method="POST" action="/login">
+        		<label for="username">Username:</label><br>
+        		<input type="text" id="username" name="username" required><br>
+        		<label for="password">Password:</label><br>
+        		<input type="password" id="password" name="password" required><br><br>
+        		<input type="submit" value="Sign In">
+    		</form>
+			<h2>Dont have an Account? Register</h2>
+			<a href ="{{url_for('register')}}">here</a>
+	</body>
+</html>
