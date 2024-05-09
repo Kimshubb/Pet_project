@@ -1,7 +1,10 @@
-from flask_sqlalchemy import SQLAlchemy
+from jps_erp import db, login_manager
+from datetime import datetime
 from flask_login import UserMixin
 
-db = SQLAlchemy()
+
+
+
 """
 class School(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -11,16 +14,17 @@ class School(db.Model):
     fee_structure = db.relationship('FeeStructure', backref='school', lazy=True)
     user_accounts = db.relationship('UserAccount', backref='school', lazy=True)
     audits = db.relationship('Audit', backref='school', lazy=True)
-
+"""
 class Student(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(100), nullable=False)
     dob = db.Column(db.Date, nullable=False)
     gender = db.Column(db.String(10), nullable=False)
     guardian_name = db.Column(db.String(100), nullable=False)
     grade = db.Column(db.String(10), nullable=False)
-    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
-    fee_payments = db.relationship('FeePayment', backref='student', lazy=True)
-
+    #school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
+    #fee_payments = db.relationship('FeePayment', backref='student', lazy=True)
+"""
 class FeePayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     method = db.Column(db.String(50), nullable=False)
@@ -34,10 +38,12 @@ class FeePayment(db.Model):
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False)
-    password = db.Column(db.String(10), nullable=False)
+    password = db.Column(db.String(60), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     #school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
-return User
+
+    def __repr__(self):
+        return f"User('{self.username}', '{self.role}')"
 
 """
 class FeeStructure(db.Model):

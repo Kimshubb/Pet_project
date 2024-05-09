@@ -1,0 +1,25 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="jumbotron p-3">
+    <h2>Update Student Details</h2>
+    <form method="POST" action="{{ url_for('update_student', id=student.id) }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.full_name.label }}: {{ form.full_name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.dob.label }}: {{ form.dob(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.gender.label }}: {{ form.gender(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.guardian_name.label }}: {{ form.guardian_name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.grade.label }}: {{ form.grade(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Update Student</button>
+    </form>
+</div>
+{% endblock %}

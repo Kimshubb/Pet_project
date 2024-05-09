@@ -1,0 +1,37 @@
+
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="modal fade" id="addStudentModal" tabindex="-1" role="dialog" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('new_student') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ form.full_name.label }}: {{ form.full_name() }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.dob.label }}: {{ form.dob() }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.gender.label }}: {{ form.gender() }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.guardian_name.label }}: {{ form.guardian_name() }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.grade.label }}: {{ form.grade() }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Student</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

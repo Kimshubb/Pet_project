@@ -1,0 +1,102 @@
+<!-- Students Information -->
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="jumbotron p-3">
+    <h2>Students <button type="button" class="btn btn-success float-left" data-toggle="modal" data-target="#addStudentModal">Add New student</button></h2>
+    <form method="GET", action="{{ url_for('students') }}">
+        <label for="grade">Select Grade</label>
+        <select name="grade" id="grade">
+            <option value="all">All</option>
+            <option value="playgroup">Playgroup</option>
+            <option value="pp1">PP1</option>
+            <option value="pp2">PP2</option>
+            <option value="1">Grade 1</option>
+            <option value="2">Grade 2</option>
+            <option value="3">Grade 3</option>
+            <option value="4">Grade 4</option>
+            <option value="5">Grade 5</option>
+            <option value="6">Grade 6</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <table class="table table-hover table-dark">
+        <tr>
+            <th>Student ID</th>
+            <th>Full Name</th>
+            <th>Date of Birth</th>
+            <th>Gender</th>
+            <th>Guardian Name</th>
+            <th>Grade</th>
+            <th>Actions</th>
+        </tr>
+        {% for student in students %}
+            <tr>
+                <td>{{ student.student_id }}</td>
+                <td>{{ student.full_name }}</td>
+                <td>{{ student.date_of_birth }}</td>
+                <td>{{ student.gender }}</td>
+                <td>{{ student.guardian_name }}</td>
+                <td>{{ student.grade }}</td>
+                <td>
+                    <a href="/students/{{ student.student_id }}" class="btn btn-warning btn-xs" 
+                    data-toggle="modal" data-target="">Edit</a>
+                    <a href="/students/{{ student.student_id }}/edit" class="btn btn-danger btn-xs"
+                     onclick="return confirm('Are you sure you want to Delete?')">Delete</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+<div class="modal fade" id="addStudentModal" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="addStudentModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('new_student') }}">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" id="full_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="dob" class="form-control" required>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gender" id="male" value="male">
+                        <label class="form-check-label" for="male">
+                          Male
+                        </label>
+                        <input class="form-check-input" type="radio" name="gender" id="female" value="female" checked>
+                        <label class="form-check-label" for="female">Female</label>
+                    </div>
+                     
+                    <div class="form-group">
+                        <label>Guardian Name</label>
+                        <input type="text" name="guardian_name" id="guardian_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Grade</label>
+                        <select name="grade" class="form-control" required>
+                            <option value="playgroup">Playgroup</option>
+                            <option value="pp1">PP1</option>
+                            <option value="pp2">PP2</option>
+                            <option value="1">Grade 1</option>
+                            <option value="2">Grade 2</option>
+                            <option value="3">Grade 3</option>
+                            <option value="4">Grade 4</option>
+                            <option value="5">Grade 5</option>
+                            <option value="6">Grade 6</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Student</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
