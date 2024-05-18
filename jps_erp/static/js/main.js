@@ -17,3 +17,10 @@ toggle.onclick = function () {
     navigation.classList.toggle('active');
     main.classList.toggle('active');
 }
+
+// Path: register student modal
+// Initialization for ES Users
+
+//import { Modal, Ripple, initMDB } from "mdb-ui-kit";
+
+//initMDB({ Modal, Ripple });

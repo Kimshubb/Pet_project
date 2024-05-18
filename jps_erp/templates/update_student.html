@@ -2,7 +2,7 @@
 {% block content %}
 <div class="jumbotron p-3">
     <h2>Update Student Details</h2>
-    <form method="POST" action="{{ url_for('update_student', id=student.id) }}">
+    <form method="POST" action="{{ url_for('update_student', student_id=student.student_id) }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.full_name.label }}: {{ form.full_name(class="form-control") }}
@@ -15,6 +15,12 @@
         </div>
         <div class="form-group">
             {{ form.guardian_name.label }}: {{ form.guardian_name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.contact_number1.label }}: {{ form.contact_number1(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.contact_number2.label }}: {{ form.contact_number2(class="form-control") }}
         </div>
         <div class="form-group">
             {{ form.grade.label }}: {{ form.grade(class="form-control") }}

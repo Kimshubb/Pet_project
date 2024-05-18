@@ -2,7 +2,12 @@
 {% extends "dashboard.html" %}
 {% block content %}
 <div class="jumbotron p-3">
-    <h2>Students <button type="button" class="btn btn-success float-left" data-toggle="modal" data-target="#addStudentModal">Add New student</button></h2>
+    <h2>Students 
+        <!-- Button trigger modal -->
+<button type="button" class="btn btn-success float-right" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#staticBackdrop">
+    Add NewStudent
+  </button>
+    </h2>
     <form method="GET", action="{{ url_for('students') }}">
         <label for="grade">Select Grade</label>
         <select name="grade" id="grade">
@@ -26,6 +31,8 @@
             <th>Date of Birth</th>
             <th>Gender</th>
             <th>Guardian Name</th>
+            <th>contact_number1</th>
+            <th>contact_number2</th>
             <th>Grade</th>
             <th>Actions</th>
         </tr>
@@ -33,12 +40,14 @@
             <tr>
                 <td>{{ student.student_id }}</td>
                 <td>{{ student.full_name }}</td>
-                <td>{{ student.date_of_birth }}</td>
+                <td>{{ student.dob }}</td>
                 <td>{{ student.gender }}</td>
                 <td>{{ student.guardian_name }}</td>
+                <td>{{ student.contact_number1 }} </td>
+                <td>{{ student.contact_number2 }}</td>
                 <td>{{ student.grade }}</td>
                 <td>
-                    <a href="/students/{{ student.student_id }}" class="btn btn-warning btn-xs" 
+                    <a href="{{ url_for('update_student', student_id=student.student_id) }}" class="btn btn-warning btn-xs" 
                     data-toggle="modal" data-target="">Edit</a>
                     <a href="/students/{{ student.student_id }}/edit" class="btn btn-danger btn-xs"
                      onclick="return confirm('Are you sure you want to Delete?')">Delete</a>
@@ -47,56 +56,70 @@
         {% endfor %}
     </table>
 </div>
-<div class="modal fade" id="addStudentModal" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="addStudentModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="{{ url_for('new_student') }}">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" name="full_name" id="full_name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Date of Birth</label>
-                        <input type="date" name="dob" class="form-control" required>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gender" id="male" value="male">
-                        <label class="form-check-label" for="male">
-                          Male
-                        </label>
-                        <input class="form-check-input" type="radio" name="gender" id="female" value="female" checked>
-                        <label class="form-check-label" for="female">Female</label>
-                    </div>
-                     
-                    <div class="form-group">
-                        <label>Guardian Name</label>
-                        <input type="text" name="guardian_name" id="guardian_name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Grade</label>
-                        <select name="grade" class="form-control" required>
-                            <option value="playgroup">Playgroup</option>
-                            <option value="pp1">PP1</option>
-                            <option value="pp2">PP2</option>
-                            <option value="1">Grade 1</option>
-                            <option value="2">Grade 2</option>
-                            <option value="3">Grade 3</option>
-                            <option value="4">Grade 4</option>
-                            <option value="5">Grade 5</option>
-                            <option value="6">Grade 6</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Student</button>
-                </form>
-            </div>
+  <!-- Modal -->
+  <div
+    class="modal fade"
+    id="staticBackdrop"
+    data-mdb-backdrop="static"
+    data-mdb-keyboard="false"
+    tabindex="-1"
+    aria-labelledby="staticBackdropLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+          <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body">
+            <form method="POST" action="{{ url_for('new_student') }}">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">{{ form.full_name.label }}</label>
+                    {{ form.full_name(class="form-control", id="full_name") }}
+                </div>
+                <div class="mb-3">
+                    <label for="dob" class="form-label">{{ form.dob.label }}</label>
+                    <input type="text" class="form-control" id="dob" name="dob">
+                </div>
+                <div class="mb-3">
+                    <label for="gender" class="form-label">{{ form.gender.label }}</label>
+                    {{ form.gender(class="form-select", id="gender") }}
+                </div>
+                <div class="mb-3">
+                    <label for="guardian_name" class="form-label">{{ form.guardian_name.label }}</label>
+                    {{ form.guardian_name(class="form-control", id="guardian_name") }}
+                </div>
+                <div class="mb-3">
+                    <label for="contact_number1" class="form-label">{{ form.contact_number1.label }}</label>
+                    {{ form.contact_number1(class="form-control", id="contact_number1") }}
+                </div>
+                <div class="mb-3">
+                    <label for="contact_number2" class="form-label">{{ form.contact_number2.label }}</label>
+                    {{ form.contact_number2(class="form-control", id="contact_number2") }}
+                <div class="mb-3">
+                    <label for="grade" class="form-label">{{ form.grade.label }}</label>
+                    {{ form.grade(class="form-select", id="grade") }}
+                </div>
+        
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+  <script>
+    $(document).ready(function () {
+        $('#dob').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true
+        });
+    });
+</script>
+
+
 {% endblock %}

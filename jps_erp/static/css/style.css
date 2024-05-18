@@ -349,4 +349,7 @@ body {
     font-size: 14px;
  }
 
-
+.modal-body {
+    max-height: 50vh;
+    overflow-y: auto;
+}
