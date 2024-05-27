@@ -5,85 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     
-    <!-- Bootstrap CSS -->
+<!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link href="{{url_for('static', filename='css/style.css')}}" rel="stylesheet">
-    <!-- form Date picker CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+<!-- form Date picker -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
-    <!-- Ionicons -->
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="container">
-        <div class="navigation">
-            <ul>
-                <li>
-                    <a href="#">
-                        <span class="icon">
-                            <ion-icon name="school-sharp"></ion-icon>
-                        </span>
-                        <span class="title">Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('students') }}">
-                        <span class="icon">
-                            <ion-icon name="accessibility-sharp"></ion-icon>
-                        </span>
-                        <span class="title">Students</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <span class="icon">
-                            <ion-icon name="wallet-sharp"></ion-icon>
-                        </span>
-                        <span class="title">Fees</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <span class="icon">
-                            <ion-icon name="people-sharp"></ion-icon>
-                        </span>
-                        <span class="title">Staff</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <span class="icon">
-                            <ion-icon name="library-sharp"></ion-icon>
-                        </span>
-                        <span class="title">Library</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <span class="icon">
-                            <ion-icon name="settings-sharp"></ion-icon>
-                        </span>
-                        <span class="title">Settings</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <span class="icon">
-                            <ion-icon name="log-out-sharp"></ion-icon>
-                        </span>
-                        <span class="title">Sign out</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <!-- End of Sidebar -->
+    <!--Sidebar-->
+   <div class="container">
+     <div class="navigation">
+        <ul>
+            <li>
+                <a href="#">
+                <span class="icon">
+                    <ion-icon name="school-sharp"></ion-icon>
+                </span>
+                <span class="title">Dashboard</span></a>
+            </li>
+            <li>
+                <a href="{{ url_for ('students') }}">
+                <span class="icon">
+                    <ion-icon name="accessibility-sharp"></ion-icon>
+                </span>
+                <span class="title">Students</span></a>
+            </li>
+            <li>
+                <a href="#">
+                <span class="icon">
+                    <ion-icon name="wallet-sharp"></ion-icon>
+                </span>
+                <span class="title">Fees</span></a>
+            </li>
+            <li>
+                <a href="#">
+                <span class="icon">
+                    <ion-icon name="people-sharp"></ion-icon>
+                </span>
+                <span class="title">Staff</span></a>
+            </li>
+            <li>
+                <a href="#">
+                <span class="icon">
+                    <ion-icon name="library-sharp"></ion-icon>
+                </span>
+                <span class="title">Library</span></a>
+            </li>
+            <li>
+                <a href="#">
+                <span class="icon">
+                    <ion-icon name="settings-sharp"></ion-icon>
+                </span>
+                <span class="title">Settings</span></a>
+            </li>
+            <li>
+                <a href="#">
+                <span class="icon">
+                    <ion-icon name="log-out-sharp"></ion-icon>
+                </span>
+                <span class="title">Sign out</span></a>
+            </li>
 
-    <!-- Main Content -->
+        </ul>
+      
+     </div>
+   </div>
+    <!--End of Sidebar-->
     <div class="main">
         <div class="topbar">
             <div class="toggle">
@@ -93,62 +85,59 @@
                 <ion-icon name="person-circle"></ion-icon>
             </div>
         </div>
-        
         {% block content %}
-        <!-- Content goes here -->
         <div class="cardBox">
             <div class="card">
                 <div>
-                    <div class="numbers">345</div>
-                    <div class="cardname">Students</div>
+                  <div class="numbers">345</div>
+                  <div class="cardname">Students</div>
                 </div>
                 <div class="iconBox">
                     <ion-icon name="people"></ion-icon>
-                </div>
+                </div>          
             </div>
             <div class="card">
                 <div>
-                    <div class="numbers">$345</div>
-                    <div class="cardname">Collections</div>
+                  <div class="numbers">$345</div>
+                  <div class="cardname">Collections</div>
                 </div>
                 <div class="iconBox">
                     <ion-icon name="cash"></ion-icon>
-                </div>
+                </div>          
             </div>
             <div class="card">
                 <div>
-                    <div class="numbers">345</div>
-                    <div class="cardname">Staff</div>
+                  <div class="numbers">345</div>
+                  <div class="cardname">Staff</div>
                 </div>
                 <div class="iconBox">
                     <ion-icon name="people-circle"></ion-icon>
-                </div>
+                </div>          
             </div>
             <div class="card">
                 <div>
-                    <div class="numbers">345</div>
-                    <div class="cardname">Departments</div>
+                  <div class="numbers">345</div>
+                  <div class="cardname">Departments</div>
                 </div>
                 <div class="iconBox">
                     <ion-icon name="briefcase"></ion-icon>
-                </div>
+                </div>          
             </div>
         </div>
-        
         <div class="details">
             <div class="recentpayments">
                 <div class="cardheader">
                     <h2>Recent Payments</h2>
                     <a href="#$" class="btn">View All</a>
                 </div>
-                <table class="table">
+                <table>
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>ID</th>
-                            <th>Student</th>
-                            <th>Amount</th>
-                            <th>Status</th>
+                            <td>Date</td>
+                            <td>ID</td>
+                            <td>Student</td>
+                            <td>Amount</td>
+                            <td>Status</td>
                         </tr>
                     </thead>
                     <tbody>
@@ -171,52 +160,26 @@
                             <td>03</td>
                             <td>John Soe</td>
                             <td>$56</td>
-                            <td><span class="statusCancelled">Cancelled</span></td>
+                            <td><span class="statusCancelled">cancelled</span></td>
                         </tr>
                     </tbody>
                 </table>
+
             </div>
+
         </div>
-        {% endblock %}
     </div>
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    {% endblock %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/main.js')}}" > </script>
+    <!--<script src="\Users\Hp\JPS_ERP_V1\static/js/main.js">-->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    
-    <!-- Popper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
-    
-    <!-- Bootstrap JS -->
+    <script type="text/javascript" src="{{ url_for('static', filename='js/mdb.umd.min.js') }}"> </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    
-    <!-- Datepicker JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    
-    <!-- Main JS -->
-    <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
-    <script>
-        // Add hovered class to selected list item and remove it from others
-        let list = document.querySelectorAll('.navigation li');
-
-        function activeLink() {
-            list.forEach((item) =>
-                item.classList.remove('hovered'));
-            this.classList.add('hovered');
-        }
-        list.forEach((item) => item.addEventListener('mouseover', activeLink));
-
-        // Dashboard toggle
-        let toggle = document.querySelector('.toggle');
-        let navigation = document.querySelector('.navigation');
-        let main = document.querySelector('.main');
-
-        toggle.onclick = function () {
-            navigation.classList.toggle('active');
-            main.classList.toggle('active');
-        }
-    </script>
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </body>
+
 </html>
+

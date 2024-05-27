@@ -6,8 +6,8 @@
 }
 
 :root {
-    --primary-color: hwb(194 2% 8%);
-    --secondary-color: #bed4e7;
+    --primary-color: hsla(234, 97%, 39%, 0.568);
+    --secondary-color: #6c757d;
     --success-color: #28a745;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
@@ -148,7 +148,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: hsla(224, 98%, 19%, 0.568);
+    background: #17a2b8;
     padding: 0 10px;
 }
 
@@ -352,21 +352,4 @@ body {
 .modal-body {
     max-height: 50vh;
     overflow-y: auto;
-}
-/* search bar */
-#suggestions {
-    border: 1px solid #ccc;
-    display: none;
-    max-height: 100px;
-    overflow-y: auto;
-    position: absolute;
-    background-color: white;
-    z-index: 1000;
-}
-.suggestion-item {
-    padding: 8px;
-    cursor: pointer;
-}
-.suggestion-item:hover {
-    background-color: #f0f0f0;
 }
