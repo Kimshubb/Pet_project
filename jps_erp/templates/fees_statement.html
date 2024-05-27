@@ -1,0 +1,84 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<head>
+    <title>Fee Statement</title>
+</head>
+<div class="container mt-5">
+    <h1 class="mb-4">Fee Statement for {{ student.full_name }}</h1>
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Date</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Code</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set cumulative_balance = 0 %}
+            {% for payment in payments %}
+            {% set cumulative_balance = cumulative_balance + payment.amount - payment.balance %}
+            <tr>
+                <td>{{ payment.pay_date.strftime('%m/%d/%Y') }}</td>
+                <td>{{ payment.method }}</td>
+                <td>{{ payment.amount }}</td>
+                <td>{{ payment.code }}</td>
+                <td>{{ cumulative_balance }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- Button to Open the Modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#printModal">
+        Print Statement
+    </button>
+
+    <!-- The Modal -->
+    <div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="printModalLabel">Fee Statement for {{ student.full_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="printContent">
+                        <h2 class="text-center">Fee Statement</h2>
+                        <p><strong>Student Name:</strong> {{ student.full_name }}</p>
+                        <p><strong>Student ID:</strong> {{ student.student_id }}</p>
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Method</th>
+                                    <th>Amount</th>
+                                    <th>Code</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set cumulative_balance = 0 %}
+                                {% for payment in payments %}
+                                {% set cumulative_balance = cumulative_balance + payment.amount - payment.balance %}
+                                <tr>
+                                    <td>{{ payment.pay_date.strftime('%m/%d/%Y') }}</td>
+                                    <td>{{ payment.method }}</td>
+                                    <td>{{ payment.amount }}</td>
+                                    <td>{{ payment.code }}</td>
+                                    <td>{{ cumulative_balance }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="printDiv('printContent')">Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<head>
+    <title>New Payment</title>
+</head>
+
+<div class="container mt-5">
+    <h1>New Payment</h1>
+    <form method="POST" action="{{ url_for('new_payment') }}">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            {{ form.student_name.label(class="form-label") }}
+            {{ form.student_name(class="form-control", id="student_name", placeholder="Enter student name", autocomplete="off") }}
+            {{ form.student_id(class="form-control", id="student_id") }}
+            <div id="suggestions" class="list-group" style="display: none; position: absolute; z-index: 1000; background: white;"></div>
+        </div>
+        <div class="mb-3">
+            {{ form.method.label(class="form-label") }}
+            {{ form.method(class="form-select", id="method") }}
+        </div>
+        <div class="mb-3">
+            {{ form.amount.label(class="form-label") }}
+            {{ form.amount(class="form-control", id="amount", step="0.01") }}
+        </div>
+        <div class="mb-3">
+            {{ form.code.label(class="form-label") }}
+            {{ form.code(class="form-control", id="code") }}
+        </div>
+        <div class="mb-3">
+            {{ form.pay_date.label(class="form-label") }}
+            {{ form.pay_date(class="form-control", id="pay_date") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Add Payment</button>
+    </form>
+</div>
+{% endblock %}

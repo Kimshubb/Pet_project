@@ -1,0 +1,120 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="jumbotron p-3">
+    <h2>PAYMENTS
+       <!-- Link to the new payment form -->
+       <a href="{{ url_for('new_payment') }}" class="btn btn-success float-right">
+        NEW PAYMENT
+    </a>
+    </h2>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="alert alert-dismissible alert-{{ messages[0][1] }}">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>{{ messages[0][0] }}</strong> {{ messages[0][2] }}
+    </div>
+    {% endif %}
+    {% endwith %}
+    <form method="GET" action="{{ url_for('payments') }}">
+        <label for="grade">Select Grade</label>
+        <select name="grade" id="grade">
+            <option value="all">All</option>
+            <option value="playgroup">Playgroup</option>
+            <option value="pp1">PP1</option>
+            <option value="pp2">PP2</option>
+            <option value="1">Grade 1</option>
+            <option value="2">Grade 2</option>
+            <option value="3">Grade 3</option>
+            <option value="4">Grade 4</option>
+            <option value="5">Grade 5</option>
+            <option value="6">Grade 6</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <table class="table table-hover table-dark mt-3">
+        <tr>
+            <th>Student ID</th>
+            <th>Student Name</th>
+            <th>Total Amount Paid</th>
+            <th>Balance</th>
+            <th>Actions</th>
+        </tr>
+        {% for student in students %}
+            <tr>
+                <td>{{ student.student_id }}</td>
+                <td>{{ student.full_name }}</td>
+                <td>{{ student.total_paid }}</td>
+                <td>{{ student.balance }}</td>
+                <td>
+                    <a href="{{ url_for('fee_statement', student_id=student.student_id) }}" class="btn btn-info btn-xs">Fee Statement</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<!-- Modal for new payment 
+<div
+    class="modal fade"
+    id="newPaymentModal"
+    data-mdb-backdrop="static"
+    data-mdb-keyboard="false"
+    tabindex="-1"
+    aria-labelledby="newPaymentModalLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newPaymentModalLabel">New Payment</h5>
+                <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('new_payment') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="student_id" class="form-label">{{ form.student_id.label }}</label>
+                        {{ form.student_id(class="form-control", id="student_id") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="method" class="form-label">{{ form.method.label }}</label>
+                        {{ form.method(class="form-select", id="method") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">{{ form.amount.label }}</label>
+                        {{ form.amount(class="form-control", id="amount") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="pay_date" class="form-label">{{ form.pay_date.label }}</label>
+                        {{ form.pay_date(class="form-control", id="pay_date") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="code" class="form-label">{{ form.code.label }}</label>
+                        {{ form.code(class="form-control", id="code") }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+ jQuery
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+ Bootstrap JavaScript 
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+-->
+
+<script>
+    $(document).ready(function () {
+        $('#pay_date').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true
+        });
+    });
+</script>
+{% endblock %}

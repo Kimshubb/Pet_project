@@ -1,0 +1,73 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Define Fee Structure</h2>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="alert alert-dismissible alert-{{ messages[0][1] }}">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>{{ messages[0][0] }}</strong> {{ messages[0][2] }}
+    </div>
+    {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('fee_structure') }}">
+        {{ form.csrf_token }}
+        
+        <div class="mb-3">
+            <label for="grade" class="form-label">{{ form.grade.label }}</label>
+            {{ form.grade(class="form-control", id="grade") }}
+        </div>
+        <div class="mb-3">
+            <label for="tuition_fee" class="form-label">{{ form.tuition_fee.label }}</label>
+            {{ form.tuition_fee(class="form-control", id="tuition_fee") }}
+        </div>
+        <div class="mb-3">
+            <label for="ass_books" class="form-label">{{ form.ass_books.label }}</label>
+            {{ form.ass_books(class="form-control", id="ass_books") }}
+        </div>
+        <div class="mb-3">
+            <label for="diary_fee" class="form-label">{{ form.diary_fee.label }}</label>
+            {{ form.diary_fee(class="form-control", id="diary_fee") }}
+        </div>
+        <div class="mb-3">
+            <label for="activity_fee" class="form-label">{{ form.activity_fee.label }}</label>
+            {{ form.activity_fee(class="form-control", id="activity_fee") }}
+        </div>
+        <div class="mb-3">
+            <label for="others" class="form-label">{{ form.others.label }}</label>
+            {{ form.others(class="form-control", id="others") }}
+        </div>
+       <!--
+        <div class="mb-3" id="additional-fees">
+            <label>Additional Fees</label>
+        </div>
+    
+        <div class="form-group">
+            <button type="button" class="btn btn-secondary" onclick="addAdditionalFee()">Add Additional Fee</button>-->
+        </div>
+    
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+    <!--
+    <script>
+        function addAdditionalFee() {
+            let additionalFeesContainer = document.getElementById('additional-fees');
+            let newAdditionalFeeIndex = additionalFeesContainer.getElementsByClassName('form-row').length;
+            let csrfToken = document.querySelector('input[name="csrf_token"]').value;
+            let newAdditionalFee = document.createElement('div');
+            newAdditionalFee.classList.add('form-row');
+            newAdditionalFee.innerHTML = `
+                <input type="hidden" name="additional_fees-${newAdditionalFeeIndex}-csrf_token" value="${csrfToken}">
+                <div class="col">
+                    <label for="additional_fees-${newAdditionalFeeIndex}-fee_name">Fee Name</label>
+                    <input type="text" name="additional_fees-${newAdditionalFeeIndex}-fee_name" id="additional_fees-${newAdditionalFeeIndex}-fee_name" class="form-control" required>
+                </div>
+                <div class="col">
+                    <label for="additional_fees-${newAdditionalFeeIndex}-payable_amount">Payable Amount</label>
+                    <input type="text" name="additional_fees-${newAdditionalFeeIndex}-payable_amount" id="additional_fees-${newAdditionalFeeIndex}-payable_amount" class="form-control" required>
+                </div>
+            `;
+            additionalFeesContainer.appendChild(newAdditionalFee);
+        }
+    </script>-->
+{% endblock %}
