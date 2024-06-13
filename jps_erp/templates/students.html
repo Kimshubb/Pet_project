@@ -4,17 +4,26 @@
 <div class="jumbotron p-3">
     <h2>Students 
         <!-- Button trigger modal -->
-<button type="button" class="btn btn-success float-right" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#staticBackdrop">
-    Add NewStudent
-  </button>
+        <button type="button" class="btn btn-success float-right" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#staticBackdrop">
+            Add New Student
+        </button>
     </h2>
-    <form method="GET", action="{{ url_for('students') }}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="GET" action="{{ url_for('students') }}">
         <label for="grade">Select Grade</label>
         <select name="grade" id="grade">
             <option value="all">All</option>
-            <option value="playgroup">Playgroup</option>
-            <option value="pp1">PP1</option>
-            <option value="pp2">PP2</option>
+            <option value="Playgroup">Playgroup</option>
+            <option value="PP1">PP1</option>
+            <option value="PP2">PP2</option>
             <option value="1">Grade 1</option>
             <option value="2">Grade 2</option>
             <option value="3">Grade 3</option>
@@ -22,17 +31,24 @@
             <option value="5">Grade 5</option>
             <option value="6">Grade 6</option>
         </select>
-        <button type="submit">Filter</button>
+        <label for="term">Select Term</label>
+        <select name="term" id="term">
+            <option value="all">All</option>
+            {% for term in terms %}
+                <option value="{{ term.id }}">{{ term.name }} - {{ term.year }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
     </form>
-    <table class="table table-hover table-dark">
+    <table class="table table-hover table-dark mt-3">
         <tr>
             <th>Student ID</th>
             <th>Full Name</th>
             <th>Date of Birth</th>
             <th>Gender</th>
             <th>Guardian Name</th>
-            <th>contact_number1</th>
-            <th>contact_number2</th>
+            <th>Contact Number 1</th>
+            <th>Contact Number 2</th>
             <th>Grade</th>
             <th>Actions</th>
         </tr>
@@ -43,14 +59,18 @@
                 <td>{{ student.dob }}</td>
                 <td>{{ student.gender }}</td>
                 <td>{{ student.guardian_name }}</td>
-                <td>{{ student.contact_number1 }} </td>
+                <td>{{ student.contact_number1 }}</td>
                 <td>{{ student.contact_number2 }}</td>
                 <td>{{ student.grade }}</td>
                 <td>
-                    <a href="{{ url_for('update_student', student_id=student.student_id) }}" class="btn btn-warning btn-xs" 
-                    data-toggle="modal" data-target="">Edit</a>
-                    <a href="/students/{{ student.student_id }}/edit" class="btn btn-danger btn-xs"
-                     onclick="return confirm('Are you sure you want to Delete?')">Delete</a>
+                    <a href="{{ url_for('update_student', student_id=student.student_id) }}" class="btn btn-warning btn-xs">Edit</a>
+                    <form method="POST" action="{{ url_for('toggle_student_status', student_id=student.student_id) }}" style="display:inline-block;">
+                        <button type="submit" class="btn btn-secondary btn-xs">
+                            {{ 'Mark Inactive' if student.active else 'Mark Active' }}
+                        </button>
+                    
+                    </form>
+                    <a href="/students/{{ student.student_id }}/delete" class="btn btn-danger btn-xs" onclick="return confirm('Are you sure you want to delete?')">Delete</a>
                 </td>
             </tr>
         {% endfor %}
@@ -81,7 +101,7 @@
                 </div>
                 <div class="mb-3">
                     <label for="dob" class="form-label">{{ form.dob.label }}</label>
-                    <input type="text" class="form-control" id="dob" name="dob">
+                    {{ form.dob(class="form-control", id="dob") }}
                 </div>
                 <div class="mb-3">
                     <label for="gender" class="form-label">{{ form.gender.label }}</label>
@@ -112,14 +132,7 @@
       </div>
     </div>
   </div>
-  <script>
-    $(document).ready(function () {
-        $('#dob').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true
-        });
-    });
-</script>
+  
 
 
 {% endblock %}

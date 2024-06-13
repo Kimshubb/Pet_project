@@ -28,4 +28,12 @@
         <button type="submit" class="btn btn-primary">Update Student</button>
     </form>
 </div>
+<script>
+    $(document).ready(function () {
+        $('#dob').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true
+        });
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,110 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="jumbotron p-3">
+    <h1>Manage Terms</h1>
+    <button type="button" class="btn btn-success float-right" data-bs-toggle="modal" data-bs-target="#termModal">
+        Add New Term
+    </button>
+
+    <h2 class="mt-4">Existing Terms</h2>
+    <table class="table table-hover table-dark">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Current</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for term in terms %}
+            <tr>
+                <td>{{ term.id }}</td>
+                <td>{{ term.name }}</td>
+                <td>{{ term.start_date }}</td>
+                <td>{{ term.end_date }}</td>
+                <td>{{ 'Yes' if term.current else 'No' }}</td>
+                <td>
+                    <button class="btn btn-warning btn-xs edit-term-btn"
+                            data-id="{{ term.id }}"
+                            data-name="{{ term.name }}"
+                            data-start_date="{{ term.start_date }}"
+                            data-end_date="{{ term.end_date }}"
+                            data-current="{{ term.current }}">Edit</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Modal -->
+    <div class="modal fade" id="termModal" tabindex="-1" aria-labelledby="termModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termModalLabel">Add/Edit Term</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="termForm" method="POST" action="{{ url_for('manage_terms') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">{{ form.name.label }}</label>
+                            {{ form.name(class="form-control", id="name") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">{{ form.start_date.label }}</label>
+                            {{ form.start_date(class="form-control", id="start_date") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">{{ form.end_date.label }}</label>
+                            {{ form.end_date(class="form-control", id="end_date") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="year" class="form-label">{{ form.year.label }}</label>
+                            {{ form.year(class="form-check-input", id="year") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="current" class="form-label">{{ form.current.label }}</label>
+                            {{ form.current(class="form-check-input", id="current") }}
+                        </div>
+                        <input type="hidden" id="term_id" name="term_id">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const termModal = document.getElementById('termModal');
+    const termForm = document.getElementById('termForm');
+    const termModalLabel = document.getElementById('termModalLabel');
+    const termIdInput = document.getElementById('term_id');
+    
+    document.querySelectorAll('.edit-term-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            termForm.action = `{{ url_for('manage_terms', term_id='') }}/${this.dataset.id}`;
+            termModalLabel.textContent = 'Edit Term';
+            document.getElementById('name').value = this.dataset.name;
+            document.getElementById('start_date').value = this.dataset.start_date;
+            document.getElementById('end_date').value = this.dataset.end_date;
+            document.getElementById('current').checked = this.dataset.current === 'True';
+            termIdInput.value = this.dataset.id;
+            new bootstrap.Modal(termModal).show();
+        });
+    });
+
+    termModal.addEventListener('hidden.bs.modal', function() {
+        termForm.action = '{{ url_for("manage_terms") }}';
+        termModalLabel.textContent = 'Add New Term';
+        termForm.reset();
+        termIdInput.value = '';
+    });
+});
+</script>
+{% endblock %}

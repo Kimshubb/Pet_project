@@ -18,6 +18,10 @@
             {{ form.grade(class="form-control", id="grade") }}
         </div>
         <div class="mb-3">
+            <label for="term" class="form-label">{{ form.term.label }}</label>
+            {{ form.term(class="form-control", id="term") }}
+        </div>
+        <div class="mb-3">
             <label for="tuition_fee" class="form-label">{{ form.tuition_fee.label }}</label>
             {{ form.tuition_fee(class="form-control", id="tuition_fee") }}
         </div>

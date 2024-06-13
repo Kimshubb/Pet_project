@@ -102,6 +102,33 @@
 							{{ form.confirm_password(class="form-control form-control-lg") }}
 							{% endif %}
                         </div>
+                        <div class="mb-3">
+                            {{ form.school_name.label(class="form-label") }}
+                            {% if form.school_name.errors %}
+                                {{ form.school_name(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.school_name.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.school_name(class="form-control form-control-lg") }}
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.school_contacts.label(class="form-label") }}
+                            {% if form.school_contacts.errors %}
+                                {{ form.school_contacts(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.school_contacts.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.school_contacts(class="form-control form-control-lg") }}
+                            {% endif %}
+                        </div>
                     </fieldset>
                     <div class="mb-3">
                         {{ form.submit(class="btn btn-outline-info btn-lg btn-block") }}	
