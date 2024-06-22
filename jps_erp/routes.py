@@ -7,6 +7,7 @@ from flask_login import login_user, current_user, UserMixin, logout_user, login_
 from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction
 import sqlalchemy as sa
 from datetime import datetime
+from jps_erp.utils import calculate_balance
 
 @app.route("/", strict_slashes=False)
 def home():
@@ -123,7 +124,7 @@ def students():
         term_filter = request.args.get('term', 'all')
         #year_filter = request.args.get('year', 'all')
 
-        query = Student.query.filter_by(current_term_id=current_term.id)
+        query = Student.query.filter_by(current_term_id=current_term.id, school_id=current_user.school_id)
 
         if grade_filter != 'all':
             print("Debugging: Applying grade filter")
@@ -135,7 +136,7 @@ def students():
 
         students = query.all()
         form = Student_registrationForm()
-        terms = Term.query.all()  # Get all terms for the term dropdown
+        terms = Term.query.filter_by(school_id=current_user.school_id).all()  # Get all terms for the term dropdown
 
         return render_template('students.html', students=students, form=form, terms=terms)
     else:
@@ -242,7 +243,7 @@ def manage_terms():
         term_year = form.year.data
 
         # Check if term already exists with the same name and year
-        existing_term = Term.query.filter_by(name=term_name, year=term_year).first()
+        existing_term = Term.query.filter_by(name=term_name, year=term_year, school_id=current_user.school_id).first()
         
         if term_id:
             term = Term.query.get(term_id)
@@ -253,12 +254,12 @@ def manage_terms():
             if existing_term:
                 flash(f"Term already exists for the year {term_year}.", 'danger')
                 return redirect(url_for('manage_terms'))
-            term = Term()
+            term = Term(school_id=current_user.school_id)
             db.session.add(term)
 
         if form.current.data:
             # Unset the current term for all terms in the same year
-            Term.query.filter_by(year=form.year.data).update({Term.current: False})
+            Term.query.filter_by(year=form.year.data, school_id=current_user.school_id).update({Term.current: False})
             db.session.commit()
 
         term.name = form.name.data
@@ -271,7 +272,7 @@ def manage_terms():
         flash('Term has been added/updated!', 'success')
         return redirect(url_for('manage_terms'))
 
-    terms = Term.query.all()
+    terms = Term.query.filter_by(school_id=current_user.school_id).all()
     return render_template('manage_terms.html', form=form, terms=terms)
 
 @app.route('/delete_student', methods=['POST'], strict_slashes=False)
@@ -333,7 +334,9 @@ def new_payment():
 @login_required
 def new_payment():
     if not current_user.is_authenticated:
+        print("Debug: User is not authenticated. Redirecting to login.")
         return redirect(url_for('login'))
+    print(f"Debug: User is authenticated. User ID: {current_user.id}, Username: {current_user.username}")
     
     form = Fee_paymentForm()
     print(form.errors)
@@ -347,6 +350,7 @@ def new_payment():
 
     if form.validate_on_submit():
         current_term = Term.query.filter_by(current=True).first()
+        print(f"Debug: current term found: {current_term}")
 
         pay_date = datetime.today
         student_id = form.student_id.data
@@ -362,6 +366,12 @@ def new_payment():
         if not student:
             flash('Student not found', 'danger')
             return redirect(url_for('new_payment'))
+        try:
+            balance = calculate_balance(student_id)
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return redirect(url_for('new_payment'))
+
 
         if method == 'Mpesa':
             # Check if the Mpesa transaction code has already been used
@@ -387,9 +397,9 @@ def new_payment():
             method=method,
             amount=amount,
             code=code,
-            balance=0,  # This should be recalculated correctly
-            cf_balance=cf_balance,
-            school_id=student.school_id,
+            balance=balance,  # This should be recalculated correctly
+            cf_balance=0,
+            school_id=school_id,
             student_id=student.student_id,
             pay_date=pay_date,
             term_id=term_id
@@ -417,17 +427,24 @@ def new_payment():
 def search_student():
     query = request.args.get('q', '')
     if query:
-        students = Student.query.filter(Student.name.ilike(f'%{query}%'), Student.school_id == current_user.school_id).all()
+        students = Student.query.filter(Student.full_name.ilike(f'%{query}%'), Student.school_id == current_user.school_id).all()
         suggestions = []
         for student in students:
             # Assuming there is a method or attribute to get the current term for the student
-            current_term = Term.query.filter_by(student_id=student.student_id, is_current=True).first()
+            current_term = (
+                db.session.query(Term)
+                .join(Student, Student.current_term_id == Term.id)
+                .filter(Student.student_id == student.student_id, Term.current == True)
+                .first()
+            )
             term_id = current_term.id if current_term else None
-            suggestions.append({'id': student.student_id, 'name': student.name, 'term_id': term_id})
+            suggestions.append({'id': student.student_id, 'name': student.full_name, 'term_id': term_id})
         return jsonify(suggestions)
     return jsonify([])
 
+"""
 @app.route('/fee_structure', methods=['GET', 'POST'])
+@login_required
 def fee_structure():
     form = Fee_structureForm()
     print(form.errors)
@@ -465,9 +482,9 @@ def fee_structure():
                                          school_id=current_user.school_id)
             db.session.add(fee_structure)
             db.session.commit()
-            """
+            
 
-            # Process additional fees
+            # Process additional fees//
             for additional_fee_entry in form.additional_fees.entries:
                 additional_fee_form = Additional_feeForm(obj=additional_fee_entry)
                 if additional_fee_form.validate():
@@ -483,7 +500,7 @@ def fee_structure():
             db.session.commit()
 
             flash('Fee structure saved successfully', 'success')
-            return redirect(url_for('payments'))"""
+            return redirect(url_for('payments'))//
         except Exception as e:
             # Log the error for debugging purposes
             print(f'Error occurred: {e}')
@@ -491,6 +508,101 @@ def fee_structure():
             # Redirect to the form page or display an error page
             return redirect(url_for('fee_structure'))  # Redirect to the form page
     return render_template('fee_structure.html', form=form)
+"""
+@app.route('/fee_structure', methods=['GET', 'POST'])
+@login_required
+def manage_fee_structure():
+    form = Fee_structureForm()
+    form.term_id.choices = [(term.id, f"{term.name} {term.year}") for term in Term.query.filter_by(school_id=current_user.school_id).all()]
+    print(form.errors)
+
+    if form.is_submitted():
+        print("submitted")
+
+    if form.validate():
+        print("valid")
+
+    print(form.errors)
+    term_filter = request.args.get('term', 'all')
+    grade_filter = request.args.get('grade', 'all')
+
+    print("Debug: Entered manage_fee_structure route")
+    print(f"Debug: term_filter = {term_filter}")
+
+    if form.validate_on_submit():
+        fee_structure_id = request.form.get('fee_structure_id')
+        grade = form.grade.data
+        term_id = form.term_id.data  # term ID from the form
+        tuition_fee = float(form.tuition_fee.data)
+        ass_books = float(form.ass_books.data)
+        diary_fee = float(form.diary_fee.data)
+        activity_fee = float(form.activity_fee.data)
+        others = float(form.others.data)
+
+
+        print(f"Debug: Form validated. fee_structure_id = {fee_structure_id}, grade = {grade}, term_id = {term_id}")
+        print(f"Debug: tuition_fee = {tuition_fee}, ass_books = {ass_books}, diary_fee = {diary_fee}, activity_fee = {activity_fee}, others = {others}")
+
+        term = Term.query.get(term_id)  # Get the Term instance from the ID
+        print(f"Debug: Retrieved term = {term}")
+
+        if fee_structure_id:
+            # Update existing fee structure
+            fee_structure = FeeStructure.query.get(fee_structure_id)
+            if not fee_structure:
+                flash('Fee structure not found.', 'danger')
+                print("Debug: Fee structure not found.")
+                return redirect(url_for('manage_fee_structure'))
+            print("Debug: Updating existing fee structure")
+            fee_structure.grade = grade
+            fee_structure.term = term
+            fee_structure.tuition_fee = tuition_fee
+            fee_structure.ass_books = ass_books
+            fee_structure.diary_fee = diary_fee
+            fee_structure.activity_fee = activity_fee
+            fee_structure.others = others
+        else:
+            
+            # Create new fee structure
+            print("Debug: Creating new fee structure")
+            existing_fee_structure = FeeStructure.query.filter_by(grade=grade, term=term, school_id=current_user.school_id).first()
+            if existing_fee_structure:
+                print("Debug: Fee structure for this grade and term already exists.")
+                flash('Fee structure for this grade and term already exists.', 'danger')
+                return redirect(url_for('manage_fee_structure'))
+
+            fee_structure = FeeStructure(
+                grade=grade, 
+                term_id=term_id, 
+                tuition_fee=tuition_fee, 
+                ass_books=ass_books,
+                diary_fee=diary_fee, 
+                activity_fee=activity_fee, 
+                others=others,
+                school_id=current_user.school_id
+            )
+            db.session.add(fee_structure)
+        
+        db.session.commit()
+        flash('Fee structure has been added/updated!', 'success')
+        return redirect(url_for('manage_fee_structure'))
+
+    fee_structures_query = FeeStructure.query.filter_by(school_id=current_user.school_id)
+    if grade_filter != 'all':
+        print("Debug: Applying grade filter")
+        fee_structures_query = fee_structures_query.filter_by(grade=grade_filter)
+    if term_filter:
+        fee_structures_query = fee_structures_query.filter_by(term_id=term_filter)
+    fee_structures = fee_structures_query.all()
+    print(f"Debug: Retrieved fee_structures = {fee_structures}")
+
+    terms = Term.query.filter_by(school_id=current_user.school_id).all()
+    grades = db.session.query(FeeStructure.grade).distinct().all()
+    grades = [grades[0] for grade in grades]
+    print(f"Debug: Retrieved terms = {terms}")
+
+    return render_template('fee_structure.html', form=form, fee_structures=fee_structures, terms=terms, grades=grades)
+
 
 
 @app.route('/settings/additional_fees', methods=['GET', 'POST'])

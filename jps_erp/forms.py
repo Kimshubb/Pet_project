@@ -60,9 +60,9 @@ class Fee_paymentForm(FlaskForm):
     amount = FloatField('Amount', validators=[DataRequired()])
     pay_date = DateField('Pay Date', validators=[DataRequired()])
     code = StringField('Code', validators=[DataRequired()])
-    balance = FloatField('Balance', validators=[DataRequired()])
+    #balance = FloatField('Balance', validators=[DataRequired()])
     cf_balance = FloatField('Carry Forward Balance', default=0.0)
-    school_id = IntegerField('School ID', validators=[DataRequired()])
+    #school_id = IntegerField('School ID', validators=[DataRequired()])
     term_id = IntegerField('Term ID', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
@@ -70,12 +70,13 @@ class Fee_structureForm(FlaskForm):
     grade = SelectField('Grade', choices=[('Playgroup', 'Playgroup'), ('PP1', 'PP1'), ('PP2', 'PP2'),
                                           ('1', 'Grade 1'), ('2', 'Grade 2'), ('3', 'Grade 3'),
                                           ('4', 'Grade 4'), ('5', 'Grade 5'), ('6', 'Grade 6')], validators=[DataRequired()])
-    term = SelectField('Term', choices=[('Term 1', 'Term 1'), ('Term 2', 'Term 2'), ('Term 3', 'Term 3')], validators=[DataRequired()])
+    term_id = SelectField('Term', coerce=int, validators=[DataRequired()])
     tuition_fee = FloatField('Tuition Fee', validators=[DataRequired()])
     ass_books = FloatField('Assessment Books', validators=[DataRequired()])
     diary_fee = FloatField('Diary Fee', validators=[DataRequired()])
     activity_fee = FloatField('Activity Fee', validators=[DataRequired()])
     others = FloatField('Other Fees', validators=[DataRequired()])
+    #term_id = IntegerField('Term ID', validators=[DataRequired()])
     
     #additional_fees = FieldList(FormField(Additional_feeForm), min_entries=1, max_entries=10)
     submit = SubmitField('Save')

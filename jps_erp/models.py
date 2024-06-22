@@ -137,13 +137,14 @@ class Term(db.Model):
     end_date = sa.Column(sa.Date, nullable=False)
     year = sa.Column(sa.Integer, nullable=False)
     current = sa.Column(sa.Boolean, default=False, nullable=False)
+    school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
     
     students = so.relationship('Student', back_populates='current_term')
     fee_payments = so.relationship('FeePayment', back_populates='term')
     fee_structures = so.relationship('FeeStructure', back_populates='term')
 
-    __table_args__ = (sa.UniqueConstraint('name', 'year', name='unique_term_name_year'),
-    )
+    #__table_args__ = (sa.UniqueConstraint('name', 'year', name='unique_term_name_year'),
+    #)
     
     def __repr__(self):
         return f"Term('{self.name}',  '{self.year}', '{self.start_date}', '{self.end_date}')"

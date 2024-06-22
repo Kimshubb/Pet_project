@@ -1,77 +1,163 @@
 {% extends "dashboard.html" %}
 {% block content %}
-<div class="container mt-4">
-    <h2>Define Fee Structure</h2>
-    {% with messages = get_flashed_messages() %}
+<div class="jumbotron p-3">
+    <h1>Manage Fee Structures</h1>
+    <button type="button" class="btn btn-success float-right" data-bs-toggle="modal" data-bs-target="#feeStructureModal">
+        Add New Fee Structure
+    </button>
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div class="alert alert-dismissible alert-{{ messages[0][1] }}">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <strong>{{ messages[0][0] }}</strong> {{ messages[0][2] }}
-    </div>
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
     {% endif %}
-    {% endwith %}
-    <form method="POST" action="{{ url_for('fee_structure') }}">
-        {{ form.csrf_token }}
-        
-        <div class="mb-3">
-            <label for="grade" class="form-label">{{ form.grade.label }}</label>
-            {{ form.grade(class="form-control", id="grade") }}
-        </div>
-        <div class="mb-3">
-            <label for="term" class="form-label">{{ form.term.label }}</label>
-            {{ form.term(class="form-control", id="term") }}
-        </div>
-        <div class="mb-3">
-            <label for="tuition_fee" class="form-label">{{ form.tuition_fee.label }}</label>
-            {{ form.tuition_fee(class="form-control", id="tuition_fee") }}
-        </div>
-        <div class="mb-3">
-            <label for="ass_books" class="form-label">{{ form.ass_books.label }}</label>
-            {{ form.ass_books(class="form-control", id="ass_books") }}
-        </div>
-        <div class="mb-3">
-            <label for="diary_fee" class="form-label">{{ form.diary_fee.label }}</label>
-            {{ form.diary_fee(class="form-control", id="diary_fee") }}
-        </div>
-        <div class="mb-3">
-            <label for="activity_fee" class="form-label">{{ form.activity_fee.label }}</label>
-            {{ form.activity_fee(class="form-control", id="activity_fee") }}
-        </div>
-        <div class="mb-3">
-            <label for="others" class="form-label">{{ form.others.label }}</label>
-            {{ form.others(class="form-control", id="others") }}
-        </div>
-       <!--
-        <div class="mb-3" id="additional-fees">
-            <label>Additional Fees</label>
-        </div>
-    
-        <div class="form-group">
-            <button type="button" class="btn btn-secondary" onclick="addAdditionalFee()">Add Additional Fee</button>-->
-        </div>
-    
-        <button type="submit" class="btn btn-primary">Save</button>
+{% endwith %}
+
+    <h2 class="mt-4">Existing Fee Structures</h2>
+    <form method="GET" action="{{ url_for('manage_fee_structure') }}">
+        <label for="grade">Select Grade</label>
+        <select name="grade" id="grade">
+            <option value="all">All</option>
+            <option value="Playgroup">Playgroup</option>
+            <option value="PP1">PP1</option>
+            <option value="PP2">PP2</option>
+            <option value="1">Grade 1</option>
+            <option value="2">Grade 2</option>
+            <option value="3">Grade 3</option>
+            <option value="4">Grade 4</option>
+            <option value="5">Grade 5</option>
+            <option value="6">Grade 6</option>
+        </select>
+        <label for="term">Select Term</label>
+        <select name="term" id="term">
+            <option value="all">All</option>
+            {% for term in terms %}
+                <option value="{{ term.id }}">{{ term.name }} - {{ term.year }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary mt-2">Filter</button>
     </form>
-    <!--
-    <script>
-        function addAdditionalFee() {
-            let additionalFeesContainer = document.getElementById('additional-fees');
-            let newAdditionalFeeIndex = additionalFeesContainer.getElementsByClassName('form-row').length;
-            let csrfToken = document.querySelector('input[name="csrf_token"]').value;
-            let newAdditionalFee = document.createElement('div');
-            newAdditionalFee.classList.add('form-row');
-            newAdditionalFee.innerHTML = `
-                <input type="hidden" name="additional_fees-${newAdditionalFeeIndex}-csrf_token" value="${csrfToken}">
-                <div class="col">
-                    <label for="additional_fees-${newAdditionalFeeIndex}-fee_name">Fee Name</label>
-                    <input type="text" name="additional_fees-${newAdditionalFeeIndex}-fee_name" id="additional_fees-${newAdditionalFeeIndex}-fee_name" class="form-control" required>
+
+    <table class="table table-hover table-dark mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Grade</th>
+                <th>Term</th>
+                <th>Tuition Fee</th>
+                <th>Books Fee</th>
+                <th>Diary Fee</th>
+                <th>Activity Fee</th>
+                <th>Others</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fee in fee_structures %}
+            <tr>
+                <td>{{ fee.id }}</td>
+                <td>{{ fee.grade }}</td>
+                <td>{{ fee.term.name }} {{ fee.term.year }}</td>
+                <td>{{ fee.tuition_fee }}</td>
+                <td>{{ fee.ass_books }}</td>
+                <td>{{ fee.diary_fee }}</td>
+                <td>{{ fee.activity_fee }}</td>
+                <td>{{ fee.others }}</td>
+                <td>
+                    <button class="btn btn-warning btn-xs edit-fee-btn"
+                            data-id="{{ fee.id }}"
+                            data-grade="{{ fee.grade }}"
+                            data-term_id="{{ fee.term.id }}"
+                            data-tuition_fee="{{ fee.tuition_fee }}"
+                            data-ass_books="{{ fee.ass_books }}"
+                            data-diary_fee="{{ fee.diary_fee }}"
+                            data-activity_fee="{{ fee.activity_fee }}"
+                            data-others="{{ fee.others }}">Edit</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Modal -->
+    <div class="modal fade" id="feeStructureModal" tabindex="-1" aria-labelledby="feeStructureModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="feeStructureModalLabel">Add/Edit Fee Structure</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="col">
-                    <label for="additional_fees-${newAdditionalFeeIndex}-payable_amount">Payable Amount</label>
-                    <input type="text" name="additional_fees-${newAdditionalFeeIndex}-payable_amount" id="additional_fees-${newAdditionalFeeIndex}-payable_amount" class="form-control" required>
+                <div class="modal-body">
+                    <form id="feeStructureForm" method="POST" action="{{ url_for('manage_fee_structure') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="grade" class="form-label">{{ form.grade.label }}</label>
+                            {{ form.grade(class="form-control", id="grade") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="term_id" class="form-label">{{ form.term_id.label }}</label>
+                            {{ form.term_id(class="form-control", id="term_id") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="tuition_fee" class="form-label">{{ form.tuition_fee.label }}</label>
+                            {{ form.tuition_fee(class="form-control", id="tuition_fee") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="ass_books" class="form-label">{{ form.ass_books.label }}</label>
+                            {{ form.ass_books(class="form-control", id="ass_books") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="diary_fee" class="form-label">{{ form.diary_fee.label }}</label>
+                            {{ form.diary_fee(class="form-control", id="diary_fee") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="activity_fee" class="form-label">{{ form.activity_fee.label }}</label>
+                            {{ form.activity_fee(class="form-control", id="activity_fee") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="others" class="form-label">{{ form.others.label }}</label>
+                            {{ form.others(class="form-control", id="others") }}
+                        </div>
+                        <input type="hidden" id="fee_structure_id" name="fee_structure_id">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
                 </div>
-            `;
-            additionalFeesContainer.appendChild(newAdditionalFee);
-        }
-    </script>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const feeStructureModal = document.getElementById('feeStructureModal');
+    const feeStructureForm = document.getElementById('feeStructureForm');
+    const feeStructureModalLabel = document.getElementById('feeStructureModalLabel');
+    const feeStructureIdInput = document.getElementById('fee_structure_id');
+    
+    document.querySelectorAll('.edit-fee-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            feeStructureForm.action = `{{ url_for('manage_fee_structure', fee_structure_id='') }}/${this.dataset.id}`;
+            feeStructureModalLabel.textContent = 'Edit Fee Structure';
+            document.getElementById('grade').value = this.dataset.grade;
+            document.getElementById('term_id').value = this.dataset.term_id;
+            document.getElementById('tuition_fee').value = this.dataset.tuition_fee;
+            document.getElementById('ass_books').value = this.dataset.ass_books;
+            document.getElementById('diary_fee').value = this.dataset.diary_fee;
+            document.getElementById('activity_fee').value = this.dataset.activity_fee;
+            document.getElementById('others').value = this.dataset.others;
+            feeStructureIdInput.value = this.dataset.id;
+            new bootstrap.Modal(feeStructureModal).show();
+        });
+    });
+
+    feeStructureModal.addEventListener('hidden.bs.modal', function() {
+        feeStructureForm.action = '{{ url_for("manage_fee_structure") }}';
+        feeStructureModalLabel.textContent = 'Add New Fee Structure';
+        feeStructureForm.reset();
+        feeStructureIdInput.value = '';
+    });
+});
+</script>
 {% endblock %}
