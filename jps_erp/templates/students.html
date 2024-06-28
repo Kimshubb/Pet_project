@@ -1,5 +1,6 @@
 <!-- Students Information -->
 {% extends "dashboard.html" %}
+
 {% block content %}
 <div class="jumbotron p-3">
     <h2>Students 
@@ -66,17 +67,16 @@
                     <a href="{{ url_for('update_student', student_id=student.student_id) }}" class="btn btn-warning btn-xs">Edit</a>
                     <form method="POST" action="{{ url_for('toggle_student_status', student_id=student.student_id) }}" style="display:inline-block;">
                         <button type="submit" class="btn btn-secondary btn-xs">
-                            {{ 'Mark Inactive' if student.active else 'Mark Active' }}
+                            {{ 'Active' if student.active else 'Inactive' }}
                         </button>
-                    
                     </form>
-                    <a href="/students/{{ student.student_id }}/delete" class="btn btn-danger btn-xs" onclick="return confirm('Are you sure you want to delete?')">Delete</a>
+                    <a href="{{ url_for('add_additional_fee', student_id=student.student_id) }}" class="btn btn-primary btn-xs">Add Additional Fee</a>
                 </td>
             </tr>
         {% endfor %}
     </table>
 </div>
-  <!-- Modal -->
+  <!-- add new student Modal -->
   <div
     class="modal fade"
     id="staticBackdrop"
@@ -132,7 +132,43 @@
       </div>
     </div>
   </div>
-  
+ <!--
+  <div class="modal fade" id="additionalFeeModal" data-mdb-backdrop="static" data-mdb-keyboard="false" tabindex="-1" aria-labelledby="additionalFeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="additionalFeeModalLabel">Add Additional Fee</h5>
+                <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="additionalFeeForm" method="POST" action="{{ url_for('add_additional_fee', student_id=0) }}">
+                    {{ associate_fee_form.hidden_tag() }}
+                    <input type="hidden" id="student_id" name="student_id">
+                    <div class="mb-3">
+                        {{ associate_fee_form.additional_fee_id.label(class="form-label") }}
+                        {{ associate_fee_form.additional_fee_id(class="form-control") }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">{{ associate_fee_form.submit.label }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
+<script>
+    var additionalFeeModal = document.getElementById('additionalFeeModal');
+    additionalFeeModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var studentId = button.getAttribute('data-student-id');
+        var modal = this;
+        modal.querySelector('#student_id').value = studentId;
+        modal.querySelector('form').setAttribute('action', '/student/' + studentId + '/add_fee');
+    });
+</script>
+{% endblock %}-->
 {% endblock %}

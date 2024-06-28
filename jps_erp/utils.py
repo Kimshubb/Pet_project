@@ -1,6 +1,6 @@
 from sqlalchemy import func
 from jps_erp import app, db
-from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction
+from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, student_additional_fee
 from flask_login import current_user
 
 def calculate_balance(student_id):
@@ -17,7 +17,7 @@ def calculate_balance(student_id):
     # Fetch the fee structure for the student's grade and school
     fee_structure = FeeStructure.query.filter_by(
         grade=student.grade,
-        school_id=current_user.school_id,
+        school_id=student.school_id,
         term_id=current_term.id
     ).first()
     if not fee_structure:
@@ -33,15 +33,25 @@ def calculate_balance(student_id):
     )
     
     # Calculate the total additional fees for the student
-    total_additional_fees = db.session.query(func.sum(AdditionalFee.amount)).filter_by(student_id=student_id).scalar() or 0.0
+    total_additional_fees = (
+        db.session.query(func.sum(AdditionalFee.amount))
+        .join(student_additional_fee, AdditionalFee.id == student_additional_fee.c.additional_fee_id)
+        .filter(student_additional_fee.c.student_id == student_id)
+        .scalar() or 0.0
+    )
     
     # Get the balance carry forward for the student
-    carry_forward_balance = student.cf_balance
+    previous_term_payment = FeePayment.query.filter(
+        FeePayment.student_id == student_id,
+        FeePayment.term_id != current_term.id
+    ).order_by(FeePayment.term_id.desc()).first()
+    carry_forward_balance = previous_term_payment.balance if previous_term_payment else 0.0
     
     # Calculate the total amount paid by the student
-    total_paid = db.session.query(func.sum(FeePayment.amount)).filter_by(student_id=student_id).scalar() or 0.0
+    total_paid = db.session.query(func.sum(FeePayment.amount)).filter_by(student_id=student_id, term_id=current_term.id).scalar() or 0.0
     
     # Calculate the balance
     balance = (total_standard_fees + total_additional_fees + carry_forward_balance) - total_paid
     
-    return balance
+    return balance, carry_forward_balance
+

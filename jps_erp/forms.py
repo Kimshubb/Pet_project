@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm 
 from wtforms import StringField, PasswordField, SubmitField, SelectField, BooleanField, FloatField, FieldList, FormField, IntegerField, DateField
-from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
-from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional
+from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term
 from jps_erp import db
 import sqlalchemy as sa
 
@@ -59,7 +59,7 @@ class Fee_paymentForm(FlaskForm):
     method = SelectField('Method', choices=[('Cash', 'Cash'), ('Bank', 'Bank'), ('Mpesa', 'Mpesa')], validators=[DataRequired()])
     amount = FloatField('Amount', validators=[DataRequired()])
     pay_date = DateField('Pay Date', validators=[DataRequired()])
-    code = StringField('Code', validators=[DataRequired()])
+    code = StringField('Code', validators=[Optional()])
     #balance = FloatField('Balance', validators=[DataRequired()])
     cf_balance = FloatField('Carry Forward Balance', default=0.0)
     #school_id = IntegerField('School ID', validators=[DataRequired()])
@@ -85,3 +85,15 @@ class Additional_feeForm(FlaskForm):
     fee_name = StringField('Fee Name', validators=[DataRequired()])
     amount = FloatField('Amount', default=0.0)
     submit = SubmitField('Add/Update Fee')
+
+class AssociateFeeForm(FlaskForm):
+    additional_fee_id = SelectField('Additional Fee', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Add Fee')
+
+class MigrateTermForm(FlaskForm):
+    term_id = SelectField('Select Term', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Migrate')
+    
+    def __init__(self, *args, **kwargs):
+        super(MigrateTermForm, self).__init__(*args, **kwargs)
+        self.term_id.choices = [(term.id, f"{term.name} - {term.year}") for term in Term.query.all()]

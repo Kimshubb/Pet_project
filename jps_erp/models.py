@@ -58,15 +58,21 @@ class FeeStructure(db.Model):
     __table_args__ = (
         sa.UniqueConstraint('grade', 'school_id', 'term_id', name='unique_grade_school_term'),
     )
+
+student_additional_fee = sa.Table('student_additional_fee', db.Model.metadata,
+    sa.Column('student_id', sa.Integer, sa.ForeignKey('student.student_id'), primary_key=True),
+    sa.Column('additional_fee_id', sa.Integer, sa.ForeignKey('additional_fee.id'), primary_key=True)
+)
+
 class AdditionalFee(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     fee_name = sa.Column(sa.String(100), nullable=False)
     amount = sa.Column(sa.Float, nullable=False)
-    student_id = sa.Column(sa.Integer, sa.ForeignKey('student.student_id'), nullable=False)
+    #student_id = sa.Column(sa.Integer, sa.ForeignKey('student.student_id'), nullable=False)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
     
     school = so.relationship('School', back_populates='additional_fees')
-    student = so.relationship('Student', back_populates='additional_fees')
+    students = so.relationship('Student', secondary=student_additional_fee, back_populates='additional_fees')
     
 """
 class StudentAdditionalFee(db.Model):
@@ -94,19 +100,20 @@ class Student(db.Model):
     
     school = so.relationship('School', back_populates='students')
     fee_payments = so.relationship('FeePayment', back_populates='student', lazy=True)
-    additional_fees = so.relationship('AdditionalFee', back_populates='student', lazy=True)
+    additional_fees = so.relationship('AdditionalFee', secondary=student_additional_fee, back_populates='students')
     current_term = so.relationship('Term', back_populates='students', foreign_keys=[current_term_id])
 
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['grade', 'school_id'], ['fee_structure.grade', 'fee_structure.school_id']),
-    )
+    #__table_args__ = (
+        #sa.ForeignKeyConstraint(['grade', 'school_id'], ['fee_structure.grade', 'fee_structure.school_id']),
+    #)
+    
 
 class FeePayment(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True, unique=True)
     method = sa.Column(sa.String(50), nullable=False)
     amount = sa.Column(sa.Float, nullable=False)
     pay_date = sa.Column(sa.Date, nullable=False)
-    code = sa.Column(sa.String(20), nullable=False)
+    code = sa.Column(sa.String(20), nullable=True)
     balance = sa.Column(sa.Float, nullable=False)
     cf_balance = sa.Column(sa.Float, default=0.0)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)

@@ -1,10 +1,10 @@
 
 from flask import render_template, url_for, flash, redirect, request, jsonify
-from jps_erp.forms import Sign_inForm, User_registrationForm, Student_registrationForm, Fee_structureForm, Additional_feeForm, TermForm, Fee_paymentForm    
+from jps_erp.forms import Sign_inForm, User_registrationForm, Student_registrationForm, Fee_structureForm, Additional_feeForm, TermForm, Fee_paymentForm, AssociateFeeForm, MigrateTermForm    
 from jps_erp import app, db
 from jps_erp.daraja import check_transaction_status
 from flask_login import login_user, current_user, UserMixin, logout_user, login_required
-from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction
+from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, student_additional_fee 
 import sqlalchemy as sa
 from datetime import datetime
 from jps_erp.utils import calculate_balance
@@ -137,8 +137,11 @@ def students():
         students = query.all()
         form = Student_registrationForm()
         terms = Term.query.filter_by(school_id=current_user.school_id).all()  # Get all terms for the term dropdown
+        # Get all additional fees for the current school
+        additional_fees = AdditionalFee.query.filter_by(school_id=current_user.school_id).all()
+        associate_fee_form = AssociateFeeForm()
 
-        return render_template('students.html', students=students, form=form, terms=terms)
+        return render_template('students.html', students=students, form=form, terms=terms, additional_fees=additional_fees, associate_fee_form=associate_fee_form)
     else:
         print("Debugging: No current term set")
         return "No current term set."
@@ -329,7 +332,7 @@ def new_payment():
 
     return render_template('new_payment.html', form=form, payments=FeePayment.query.filter_by(school_id=current_user.school_id).all())
 """
-
+"""
 @app.route('/new_payment', methods=['POST', 'GET'])
 @login_required
 def new_payment():
@@ -356,7 +359,15 @@ def new_payment():
         student_id = form.student_id.data
         method = form.method.data
         amount = float(form.amount.data)
-        code = form.code.data  # Get the code from the form
+        code =urn redirect(url_for('new_payment'))
+        try:
+            balance = calculate_balance(student_id)
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return redirect(url_for('new_payment'))
+
+
+        if method  form.code.data  # Get the code from the form
         cf_balance = float(form.cf_balance.data)
         school_id = current_user.school_id
         term_id = current_term.id
@@ -365,15 +376,7 @@ def new_payment():
         student = Student.query.filter_by(student_id=student_id, school_id=current_user.school_id).first()
         if not student:
             flash('Student not found', 'danger')
-            return redirect(url_for('new_payment'))
-        try:
-            balance = calculate_balance(student_id)
-        except ValueError as e:
-            flash(str(e), 'danger')
-            return redirect(url_for('new_payment'))
-
-
-        if method == 'Mpesa':
+            ret== 'Mpesa':
             # Check if the Mpesa transaction code has already been used
             mpesa_transaction = MpesaTransaction.query.filter_by(code=code).first()
             if mpesa_transaction and mpesa_transaction.used:
@@ -420,7 +423,7 @@ def new_payment():
         return render_template('receipt.html', receipt=receipt_data)
 
     payments = FeePayment.query.filter_by(school_id=current_user.school_id).all()
-    return render_template('new_payment.html', form=form, payments=payments)
+    return render_template('new_payment.html', form=form, payments=payments)"""
 
 @app.route('/search_student')
 @login_required
@@ -591,7 +594,7 @@ def manage_fee_structure():
     if grade_filter != 'all':
         print("Debug: Applying grade filter")
         fee_structures_query = fee_structures_query.filter_by(grade=grade_filter)
-    if term_filter:
+    if term_filter != 'all':
         fee_structures_query = fee_structures_query.filter_by(term_id=term_filter)
     fee_structures = fee_structures_query.all()
     print(f"Debug: Retrieved fee_structures = {fee_structures}")
@@ -632,3 +635,157 @@ def manage_additional_fees():
     school_id = current_user.school_id # Replace with the actual school_id
     additional_fees = AdditionalFee.query.filter_by(school_id=school_id).all()
     return render_template('manage_add_fees.html', form=form, additional_fees=additional_fees)
+
+@app.route('/student/<int:student_id>/add_fee', methods=['GET', 'POST'])
+@login_required
+def add_additional_fee(student_id):
+    student = Student.query.get_or_404(student_id)
+    form = AssociateFeeForm()
+    form.additional_fee_id.choices = [(fee.id, fee.fee_name) for fee in AdditionalFee.query.filter_by(school_id=current_user.school_id).all()]
+
+    if form.validate_on_submit():
+        additional_fee_id = form.additional_fee_id.data
+        # Check if the association already exists
+        existing_association = db.session.query(Student).join(student_additional_fee).filter(
+            student_additional_fee.c.student_id == student_id,
+            student_additional_fee.c.additional_fee_id == additional_fee_id
+        ).first()
+
+        if existing_association:
+            flash('This additional fee is already associated with the student.', 'warning')
+        else:
+            fee = AdditionalFee.query.get(additional_fee_id)
+            student.additional_fees.append(fee)
+            db.session.commit()
+            flash('Additional fee added successfully', 'success')
+
+        return redirect(url_for('add_additional_fee', student_id=student_id))
+
+    # Fetch the additional fees already associated with the student
+    associated_fees = student.additional_fees
+
+    return render_template('add_additionalfee.html', student=student, form=form, associated_fees=associated_fees)
+
+@app.route('/migrate_term', methods=['GET', 'POST'])
+@login_required
+def migrate_term():
+    form = MigrateTermForm()
+    current_term = Term.query.filter_by(current=True).first()
+    
+    if form.validate_on_submit():
+        term_id = form.term_id.data
+        new_term = Term.query.get_or_404(term_id)
+        
+        # Migrate active students and their payments to the new term
+        active_students = Student.query.filter_by(school_id=current_user.school_id, active=True).all()
+        for student in active_students:
+            student.current_term_id = term_id
+
+        db.session.commit()
+        flash('Active students and their payments have been migrated successfully.', 'success')
+        return redirect(url_for('migrate_term'))
+
+    return render_template('migrate_term.html', form=form, current_term=current_term)
+
+@app.route('/new_payment', methods=['POST', 'GET'])
+@login_required
+def new_payment():
+    form = Fee_paymentForm()
+
+    if form.validate_on_submit():
+        current_term = Term.query.filter_by(current=True).first()
+        if not current_term:
+            flash('No current term is set. Please set a current term before making payments.', 'danger')
+            return redirect(url_for('new_payment'))
+        print(f"Current term ID: {current_term.id}")
+
+
+        pay_date = datetime.today().date()
+        student_id = form.student_id.data
+        method = form.method.data
+        amount = float(form.amount.data)
+        code = form.code.data if method in ['Mpesa', 'Bank'] else None  # Get the code from the form
+        school_id = current_user.school_id
+        term_id = current_term.id
+
+        print(f"Payment date: {pay_date}")
+        print(f"Student ID: {student_id}")
+        print(f"Method: {method}")
+        print(f"Amount: {amount}")
+        print(f"Code: {code}")
+        print(f"School ID: {school_id}")
+        print(f"Term ID: {term_id}")
+
+
+        # Check if student exists in the current user's school
+        student = Student.query.filter_by(student_id=student_id, school_id=current_user.school_id).first()
+        if not student:
+            flash('Student not found', 'danger')
+            return redirect(url_for('new_payment'))
+
+        # Calculate current balance and carry forward balance
+        balance, cf_balance = calculate_balance(student_id)
+
+        print(f"Current balance: {balance}")
+        print(f"Carry forward balance: {cf_balance}")
+
+        if method == 'Mpesa':
+            # Check if the Mpesa transaction code has already been used
+            mpesa_transaction = MpesaTransaction.query.filter_by(code=code).first()
+            if mpesa_transaction and mpesa_transaction.used:
+                flash('Mpesa transaction code has already been used.', 'danger')
+                return redirect(url_for('new_payment'))
+
+            # Verify the Mpesa transaction using the code from the form
+            if not check_transaction_status(code):
+                flash('Mpesa transaction verification failed. Please try again.', 'danger')
+                return redirect(url_for('new_payment'))
+
+            # Mark the transaction code as used
+            if mpesa_transaction:
+                mpesa_transaction.used = True
+            else:
+                mpesa_transaction = MpesaTransaction(code=code, verified=True, used=True)
+            db.session.add(mpesa_transaction)
+            db.session.commit()
+
+        new_payment = FeePayment(
+            method=method,
+            amount=amount,
+            code=code,
+            balance=balance - amount,  # Update balance after the new payment
+            cf_balance=cf_balance,
+            school_id=school_id,
+            student_id=student.student_id,
+            pay_date=pay_date,
+            term_id=term_id
+        )
+
+        try:
+            db.session.add(new_payment)
+            db.session.commit()
+            flash('Payment added successfully', 'success')
+            print(f"New payment added with ID: {new_payment.id}")
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding payment: {str(e)}', 'danger')
+            print(f"Error adding payment: {str(e)}")
+
+        return redirect(url_for('print_receipt', student_id=student.student_id, payment_id=new_payment.id))
+
+    print("Form did not validate", form.errors)
+    payments = FeePayment.query.filter_by(school_id=current_user.school_id).all()
+    return render_template('new_payment.html', form=form, payments=payments)
+
+
+@app.route('/student/<int:student_id>/receipt/<int:payment_id>', methods=['GET'])
+def print_receipt(student_id, payment_id):
+    student = Student.query.get_or_404(student_id)
+    payment = FeePayment.query.get_or_404(payment_id)
+    current_term=Term.query.filter_by(current=True, school_id=current_user.school_id).first()
+    school = current_user.school
+
+
+    balance, cf_balance = calculate_balance(student_id)
+    
+    return render_template('receipt.html', student=student, payment=payment, balance=balance, cf_balance=cf_balance, current_term=current_term, school=school)

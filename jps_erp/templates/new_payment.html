@@ -57,7 +57,7 @@
             {{ form.amount.label(class="form-label") }}
             {{ form.amount(class="form-control", id="amount", step="0.01") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-3" id="code_field" style="display: none;">
             {{ form.code.label(class="form-label") }}
             {{ form.code(class="form-control", id="code") }}
         </div>
@@ -96,6 +96,15 @@ document.getElementById("student_name").addEventListener("input", function() {
             });
     } else {
         document.getElementById("suggestions").style.display = "none";
+    }
+});
+document.getElementById("method").addEventListener("change", function() {
+    const method = this.value;
+    const codeField = document.getElementById("code_field");
+    if (method === "Cash") {
+        codeField.style.display = "none";
+    } else {
+        codeField.style.display = "block";
     }
 });
 </script>

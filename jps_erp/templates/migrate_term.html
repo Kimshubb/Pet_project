@@ -1,0 +1,29 @@
+{% extends "dashboard.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Migrate Students and Payments to Existing Term</h2>
+    {% if current_term %}
+        <p>Current Term: {{ current_term.name }} - {{ current_term.year }}</p>
+    {% else %}
+        <p>No current term is set.</p>
+    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('migrate_term') }}">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.term_id.label(class="form-label") }}
+            {{ form.term_id(class="form-select") }}
+        </div>
+        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+    </form>
+</div>
+{% endblock %}
