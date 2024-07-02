@@ -1,0 +1,36 @@
+{% extends "dashboard.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Settings</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <ul class="list-group">
+        <li class="list-group-item">
+            <a href="{{ url_for('manage_terms') }}">Manage Terms</a>
+        </li>
+        <li class="list-group-item">
+            <a href="{{ url_for('manage_additional_fees') }}">Add Additional Fees</a>
+        </li>
+        <li class="list-group-item">
+            <a href="{{ url_for('manage_fee_structure') }}">Define Fee Structure</a>
+        </li>
+        <li class="list-group-item">
+            <a href="{{ url_for('migrate_term') }}">Migrate Students to new term</a>
+        </li>
+        <li class="list-group-item">
+            <a href="{{ url_for('fee_reports') }}">See financial status</a>
+        </li>
+        <li class="list-group-item">
+            <a href="{{ url_for('verify_transactions') }}">Verify Payments</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}

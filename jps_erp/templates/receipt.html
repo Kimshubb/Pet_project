@@ -55,8 +55,10 @@
             <dt>Amount Paid:</dt>
             <dd>{{ payment.amount }}</dd>
 
+            {% if payment.method in ['Bank', 'Mpesa'] %}
             <dt>Payment Method:</dt>
             <dd>{{ payment.method }}</dd>
+            {% endif %}
 
             <dt>Payment Date:</dt>
             <dd>{{ payment.pay_date }}</dd>

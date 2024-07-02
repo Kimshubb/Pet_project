@@ -1,0 +1,62 @@
+{% extends "dashboard.html" %}
+{% block content %}
+    <title>Verify Transactions</title>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Transaction Verification</h1>
+
+        <!-- Upload form -->
+          <!-- Upload form -->
+          <form action="{{ url_for('upload_statement') }}" method="POST" enctype="multipart/form-data" class="mb-4">
+            <div class="mb-3">
+                <label for="file" class="form-label">Select PDF file</label>
+                <input type="file" class="form-control" id="file" name="file" accept=".pdf">
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+
+        <!-- Verify button -->
+        <form action="{{ url_for('verify_transactions') }}" method="POST">
+            <button type="submit" class="btn btn-secondary mb-4">Verify</button>
+        </form>
+
+
+        <!-- Display verification results if available -->
+        {% if verified_count is not none %}
+        <div class="alert alert-success">
+            <strong>Verified Transactions:</strong> {{ verified_count }}
+        </div>
+        
+        <h2 class="mb-3">Unverified Transactions</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Transaction Code</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Student</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in unverified_transactions %}
+                <tr>
+                    <td>{{ transaction.code }}</td>
+                    <td>{{ transaction.amount }}</td>
+                    <td>{{ transaction.student }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+    {% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    {% endblock %}
+{% endblock %}

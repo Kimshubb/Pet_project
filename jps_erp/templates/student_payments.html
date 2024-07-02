@@ -1,0 +1,54 @@
+    
+    {% extends 'dashboard.html' %}
+    {% block content %}
+<head>
+    <title>Student Payments</title>
+    <!-- Bootstrap CSS 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">-->
+</head>
+<div class="container mt-5">
+    <h1>Student Payments</h1>
+    <a href="{{ url_for('new_payment') }}" class="btn btn-success float-left">Add New Payment</a>
+    <form method="GET" action="{{ url_for('student_payments') }}">
+        <label for="grade">Select Grade:</label>
+        <select name="grade" id="grade"  onchange="this.form.submit()">
+            <option value="all" {% if selected_grade == 'all' %}selected{% endif %}>All Grades</option>
+            {% for grade in grades %}
+                <option value="{{ grade[0] }}" {% if selected_grade == grade[0] %}selected{% endif %}>{{ grade[0] }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Grade</th>
+                <th>Carry Forward Balance</th>
+                <th>Total Amount Paid</th>
+                <th>Balance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for details in student_payment_details %}
+            <tr>
+                <td>{{ details.student.student_id }}</td>
+                <td>{{ details.student.full_name }}</td>
+                <td>{{ details.student.grade }}</td>
+                <td>{{ details.cf_balance }}</td>
+                <td>{{ details.total_paid }}</td>
+                <td>{{ details.balance }}</td>
+                <td>
+                    <a href="{{ url_for('print_receipt', student_id=details.student.student_id, payment_id=0) }}" class="btn btn-primary btn-sm">Fee Statement</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!-- Bootstrap JS 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>-->
+
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'dashboard.html' %}
+
+{% block title %}Total Balances per Grade{% endblock %}
+
+{% block content %}
+    <title>Total Balances per Grade</title> 
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Total Balances per Grade</h1>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Grade</th>
+                        <th>Expected Fees</th>
+                        <th>Total Additional Fees</th>
+                        <th>Additional Fee Counts</th>
+                        <th>Total Fees Paid</th>
+                        <th>Total Balance</th>
+                        <th>Total Students</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in grade_details %}
+                    <tr>
+                        <td>{{ grade.grade_name }}</td>
+                        <td>{{ grade.expected_fees }}</td>
+                        <td>{{ grade.total_additional_fees }}</td>
+                        <td>
+                            <ul>
+                                {% for fee_name, count in grade.additional_fee_counts.items() %}
+                                <li>{{ fee_name }}: {{ count }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>{{ grade.total_fees_paid }}</td>
+                        <td>{{ grade.total_balance }}</td>
+                        <td>{{ grade.total_students }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}

@@ -113,7 +113,7 @@ class FeePayment(db.Model):
     method = sa.Column(sa.String(50), nullable=False)
     amount = sa.Column(sa.Float, nullable=False)
     pay_date = sa.Column(sa.Date, nullable=False)
-    code = sa.Column(sa.String(20), nullable=True)
+    code = sa.Column(sa.String(20), nullable=True, unique=True)
     balance = sa.Column(sa.Float, nullable=False)
     cf_balance = sa.Column(sa.Float, default=0.0)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
@@ -136,6 +136,10 @@ class MpesaTransaction(db.Model):
 
     def __repr__(self):
         return f"MpesaTransaction('{self.code}', Verified: {self.verified}, Used: {self.used})"
+
+class BankStatement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(120), nullable=False)
     
 class Term(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
