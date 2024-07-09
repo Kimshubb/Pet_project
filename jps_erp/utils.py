@@ -4,6 +4,7 @@ from jps_erp.models import User, Student, School, FeePayment, FeeStructure, Addi
 from flask_login import current_user
 import pdfplumber
 import re
+import spacy
 
 def calculate_balance(student_id):
     # Fetch the student record
@@ -60,13 +61,16 @@ def calculate_balance(student_id):
     
     return balance, carry_forward_balance
 
+nlp = spacy.load('en_core_web_sm')
+
 def extract_transactions_from_pdf(pdf_path):
     transactions = []
 
     # Regular expression patterns for extracting codes and amounts
-    mpesa_pattern = re.compile(r'\b\w{10}\b')
-    bank_pattern = re.compile(r'\b\d{12}\b')
-    amount_pattern = re.compile(r'\b\d{1,3}(?:,\d{3})*\.\d{2}\b')
+    mpesa_code_regex = r"MPS\s254\d{9}\s([A-Z0-9]{10})"
+    mpesa_amount_regex = r"\d{2}/\d{2}/\d{4}\s(\d{1,3}(,\d{3})*\.\d{2})"
+    bank_code_regex = r"(\d{12})/\d{2}-\d{2}-\d{4}"
+    bank_amount_regex = r"\d{2}-\d{2}-\d{4}\s(\d{1,3}(,\d{3})*\.\d{2})"
 
     with pdfplumber.open(pdf_path) as pdf:
         for page_number, page in enumerate(pdf.pages, start=1):
@@ -74,22 +78,34 @@ def extract_transactions_from_pdf(pdf_path):
             print(f"Debug: Extracted text from page {page_number}:\n{text}\n{'-'*80}")
 
             if text:
-                lines = text.split('\n')
-                for line in lines:
-                    # Clean up the line to remove OCR artifacts
-                    cleaned_line = re.sub(r'[^A-Za-z0-9\s.,#@]', '', line)
+                doc = nlp(text)
+                for sentence in doc.sents:
+                    line = sentence.text
 
-                    # Check for transaction code (Mpesa or bank)
-                    mpesa_match = mpesa_pattern.search(cleaned_line)
-                    bank_match = bank_pattern.search(cleaned_line)
-                    code = mpesa_match.group(0) if mpesa_match else (bank_match.group(0) if bank_match else None)
+                    # Extract Mpesa transaction code
+                    mpesa_code_match = re.search(mpesa_code_regex, line)
+                    if mpesa_code_match:
+                        mpesa_code = mpesa_code_match.group(1)
+                        print(f"Debug: Extracted Mpesa code - {mpesa_code}")
 
-                    # Check for amount
-                    amount_match = amount_pattern.search(cleaned_line)
-                    amount = float(amount_match.group(0).replace(',', '')) if amount_match else None
+                        # Find the corresponding amount
+                        amount_match = re.search(mpesa_amount_regex, line)
+                        if amount_match:
+                            amount = float(amount_match.group(1).replace(',', ''))
+                            transactions.append({'code': mpesa_code, 'amount': amount})
+                            print(f"Debug: Extracted Mpesa transaction - Code: {mpesa_code}, Amount: {amount}")
 
-                    if code and amount is not None:
-                        transactions.append({'code': code, 'amount': amount})
-                        print(f"Debug: Extracted transaction - Code: {code}, Amount: {amount}")
+                    # Extract Bank transaction code
+                    bank_code_match = re.search(bank_code_regex, line)
+                    if bank_code_match:
+                        bank_code = bank_code_match.group(1)
+                        print(f"Debug: Extracted Bank code - {bank_code}")
+
+                        # Find the corresponding amount
+                        amount_match = re.search(bank_amount_regex, line)
+                        if amount_match:
+                            amount = float(amount_match.group(1).replace(',', ''))
+                            transactions.append({'code': bank_code, 'amount': amount})
+                            print(f"Debug: Extracted Bank transaction - Code: {bank_code}, Amount: {amount}")
 
     return transactions

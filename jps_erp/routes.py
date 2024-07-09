@@ -65,6 +65,8 @@ def login():
             else:
                 print("User authenticated. Logging in...")
                 login_user(user, remember=form.remember.data)
+                session['user_name'] = current_user.username  # Storing user name in session
+                session['school_name'] = current_user.school.name 
                 return redirect(url_for('dashboard'))
         else:
             print("Form validation failed", form.errors)
@@ -105,8 +107,10 @@ def login():
 
 @app.route('/dashboard', strict_slashes=False)
 def dashboard():
+    user_name = session.get('user_name', 'User')  # Getting user name from session
+    school_name = session.get('school_name', 'Your School') # Getting school name from session
 
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', user_name=user_name, school_name=school_name)
 
 @app.route('/logout', strict_slashes=False)
 def logout():

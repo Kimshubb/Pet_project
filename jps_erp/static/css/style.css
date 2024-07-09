@@ -35,7 +35,6 @@ body {
     transition: 0.5s;
     overflow: hidden;
     border-left: 1px solid var(--danger-color);
-    margin-top: 60px;
 }
 
 .navigation.active {
