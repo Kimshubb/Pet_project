@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm 
-from wtforms import StringField, PasswordField, SubmitField, SelectField, BooleanField, FloatField, FieldList, FormField, IntegerField, DateField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, BooleanField, FloatField, FieldList, FormField, IntegerField, DateField, HiddenField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional
 from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term
 from jps_erp import db
@@ -54,7 +54,7 @@ class TermForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class Fee_paymentForm(FlaskForm):
-    student_id = IntegerField('Student ID', validators=[DataRequired()])
+    student_id = StringField('Student ID', validators=[DataRequired()])
     student_name = StringField('Student Name', validators=[DataRequired()])
     method = SelectField('Method', choices=[('Cash', 'Cash'), ('Bank', 'Bank'), ('Mpesa', 'Mpesa')], validators=[DataRequired()])
     amount = FloatField('Amount', validators=[DataRequired()])
@@ -63,7 +63,7 @@ class Fee_paymentForm(FlaskForm):
     #balance = FloatField('Balance', validators=[DataRequired()])
     cf_balance = FloatField('Carry Forward Balance', default=0.0)
     #school_id = IntegerField('School ID', validators=[DataRequired()])
-    term_id = IntegerField('Term ID', validators=[DataRequired()])
+    term_id = HiddenField('Term ID', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 class Fee_structureForm(FlaskForm):

@@ -1,11 +1,10 @@
-<!-- Students Information -->
 {% extends "dashboard.html" %}
 
 {% block content %}
 <div class="jumbotron p-3">
     <h2>Students 
         <!-- Button trigger modal -->
-        <button type="button" class="btn btn-success float-right" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#staticBackdrop">
+        <button type="button" class="btn btn-success float-right" data-bs-toggle="modal" data-bs-target="#addStudentModal">
             Add New Student
         </button>
     </h2>
@@ -48,8 +47,8 @@
             <th>Date of Birth</th>
             <th>Gender</th>
             <th>Guardian Name</th>
-            <th>Contact Number 1</th>
-            <th>Contact Number 2</th>
+            <th>Primary Contact</th>
+            <th>Alternative Contact </th>
             <th>Grade</th>
             <th>Actions</th>
         </tr>
@@ -76,81 +75,49 @@
         {% endfor %}
     </table>
 </div>
-  <!-- add new student Modal -->
-  <div
-    class="modal fade"
-    id="staticBackdrop"
-    data-mdb-backdrop="static"
-    data-mdb-keyboard="false"
-    tabindex="-1"
-    aria-labelledby="staticBackdropLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
-          <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <form method="POST" action="{{ url_for('new_student') }}">
-                {{ form.hidden_tag() }}
-                <div class="mb-3">
-                    <label for="full_name" class="form-label">{{ form.full_name.label }}</label>
-                    {{ form.full_name(class="form-control", id="full_name") }}
-                </div>
-                <div class="mb-3">
-                    <label for="dob" class="form-label">{{ form.dob.label }}</label>
-                    {{ form.dob(class="form-control", id="dob") }}
-                </div>
-                <div class="mb-3">
-                    <label for="gender" class="form-label">{{ form.gender.label }}</label>
-                    {{ form.gender(class="form-select", id="gender") }}
-                </div>
-                <div class="mb-3">
-                    <label for="guardian_name" class="form-label">{{ form.guardian_name.label }}</label>
-                    {{ form.guardian_name(class="form-control", id="guardian_name") }}
-                </div>
-                <div class="mb-3">
-                    <label for="contact_number1" class="form-label">{{ form.contact_number1.label }}</label>
-                    {{ form.contact_number1(class="form-control", id="contact_number1") }}
-                </div>
-                <div class="mb-3">
-                    <label for="contact_number2" class="form-label">{{ form.contact_number2.label }}</label>
-                    {{ form.contact_number2(class="form-control", id="contact_number2") }}
-                <div class="mb-3">
-                    <label for="grade" class="form-label">{{ form.grade.label }}</label>
-                    {{ form.grade(class="form-select", id="grade") }}
-                </div>
-        
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
-            </form>
-        </div>
-      </div>
-    </div>
-  </div>
- <!--
-  <div class="modal fade" id="additionalFeeModal" data-mdb-backdrop="static" data-mdb-keyboard="false" tabindex="-1" aria-labelledby="additionalFeeModalLabel" aria-hidden="true">
+
+<!-- Add New Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="additionalFeeModalLabel">Add Additional Fee</h5>
-                <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="additionalFeeForm" method="POST" action="{{ url_for('add_additional_fee', student_id=0) }}">
-                    {{ associate_fee_form.hidden_tag() }}
-                    <input type="hidden" id="student_id" name="student_id">
+                <form method="POST" action="{{ url_for('new_student') }}">
+                    {{ form.hidden_tag() }}
                     <div class="mb-3">
-                        {{ associate_fee_form.additional_fee_id.label(class="form-label") }}
-                        {{ associate_fee_form.additional_fee_id(class="form-control") }}
+                        <label for="full_name" class="form-label">{{ form.full_name.label }}</label>
+                        {{ form.full_name(class="form-control", id="full_name") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="dob" class="form-label">{{ form.dob.label }}</label>
+                        {{ form.dob(class="form-control", id="dob") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">{{ form.gender.label }}</label>
+                        {{ form.gender(class="form-select", id="gender") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="guardian_name" class="form-label">{{ form.guardian_name.label }}</label>
+                        {{ form.guardian_name(class="form-control", id="guardian_name") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_number1" class="form-label">{{ form.contact_number1.label }}</label>
+                        {{ form.contact_number1(class="form-control", id="contact_number1") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_number2" class="form-label">{{ form.contact_number2.label }}</label>
+                        {{ form.contact_number2(class="form-control", id="contact_number2") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="grade" class="form-label">{{ form.grade.label }}</label>
+                        {{ form.grade(class="form-select", id="grade") }}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">{{ associate_fee_form.submit.label }}</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
                     </div>
                 </form>
             </div>
@@ -159,16 +126,17 @@
 </div>
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
 <script>
-    var additionalFeeModal = document.getElementById('additionalFeeModal');
-    additionalFeeModal.addEventListener('show.bs.modal', function (event) {
-        var button = event.relatedTarget;
-        var studentId = button.getAttribute('data-student-id');
-        var modal = this;
-        modal.querySelector('#student_id').value = studentId;
-        modal.querySelector('form').setAttribute('action', '/student/' + studentId + '/add_fee');
+document.addEventListener("DOMContentLoaded", function() {
+    const addStudentModal = document.getElementById('addStudentModal');
+    const addStudentForm = addStudentModal.querySelector('form');
+
+    addStudentModal.addEventListener('hidden.bs.modal', function() {
+        addStudentForm.reset();
+        addStudentForm.action = "{{ url_for('new_student') }}";
+        addStudentModal.querySelector('.modal-title').textContent = 'Add New Student';
     });
+});
 </script>
-{% endblock %}-->
+{% endblock %}
 {% endblock %}
