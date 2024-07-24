@@ -1,4 +1,16 @@
-// Menu toggle
+//add hovered class to selected list item and remove it from others
+let list = document.querySelectorAll('.navigation li');
+
+function activeLink() {
+    list.forEach((item) =>
+        item.classList.remove('hovered'));
+    this.classList.add('hovered');
+}
+list.forEach((item) => item.addEventListener('mouseover', activeLink));
+
+
+
+//menu toggle
 let toggle = document.querySelector('.toggle');
 let navigation = document.querySelector('.navigation');
 let main = document.querySelector('.main');
@@ -8,13 +20,9 @@ toggle.onclick = function () {
     main.classList.toggle('active');
 }
 
-// Hover effect on list items
-let list = document.querySelectorAll('.navigation li');
+// Path: register student modal
+// Initialization for ES Users
 
-function activeLink() {
-    list.forEach((item) =>
-        item.classList.remove('hovered'));
-    this.classList.add('hovered');
-}
+//import { Modal, Ripple, initMDB } from "mdb-ui-kit";
 
-list.forEach((item) => item.addEventListener('mouseover', activeLink));
+//initMDB({ Modal, Ripple });

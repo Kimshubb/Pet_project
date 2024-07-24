@@ -8,17 +8,16 @@ from jps_erp.models import User, Student, School, FeePayment, FeeStructure, Addi
 import sqlalchemy as sa
 from sqlalchemy import func
 from datetime import datetime
-from jps_erp.utils import calculate_balance, extract_transactions_from_pdf, generate_custom_student_id, process_mpesa_transaction, paid_via_method_today, get_recent_payments, active_students, inactive_students_term, inactive_students_year, paid_via_method_term, paid_via_method_year, current_year, get_current_term, get_current_term, FeeStructureNotFoundError
+from jps_erp.utils import calculate_balance, extract_transactions_from_pdf
 import os
 from werkzeug.utils import secure_filename
-import logging
 
 @app.route("/", strict_slashes=False)
 def home():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     else:
-        return render_template('index.html')
+        return redirect(url_for('login'))
 
 @app.route("/register", methods=['GET', 'POST'], strict_slashes=False)
 def register():
@@ -82,66 +81,48 @@ def login():
 def settings():
     return render_template('settings.html')
 
+"""
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    print("Login route accessed via Request method:", request.method)
+    
+    if current_user.is_authenticated:
+        print("Already authenticated user:", current_user)
+        return redirect(url_for('dashboard'))
+    form = Sign_inForm()
+    if form.validate_on_submit():
+        print("Form validation result:", form.validate_on_submit())
+        user = db.session.scalar(
+            sa.select(User).where(User.username == form.username.data))
+        print("Retrieved User:", user)
+        if user is None or not user.check_password(form.password.data):
+            flash('Log in unsuccessful!Incorrect username or password!', 'danger')
+            return redirect(url_for('login'))
+        print("User authenticated sucessfully:", user)
+        login_user(user, remember=form.remember.data)
+        print("User logged in:", current_user.is_authenticated)
+        return redirect(url_for('dashboard'))
+    return render_template('signin.html', form=form)
+"""
+
 @app.route('/dashboard', strict_slashes=False)
-@login_required
 def dashboard():
     user_name = session.get('user_name', 'User')  # Getting user name from session
-    school_name = session.get('school_name', 'Your School')  # Getting school name from session
-    current_term = Term.query.filter_by(school_id=current_user.school_id, current=True).first()
-    if not current_term:
-        flash('No current term set. Please set a current term.', 'info')
-        return redirect(url_for('manage_terms'))
+    school_name = session.get('school_name', 'Your School') # Getting school name from session
 
-    try:
-        
-        school_id = current_user.school_id
-        term_id = get_current_term(school_id)
-        year = current_year()
-
-        recent_payments_query = get_recent_payments(school_id, limit=10)
-        total_active_students = active_students(school_id, term_id)
-        total_inactive_students_term = inactive_students_term(school_id, term_id)
-        total_inactive_students_year = inactive_students_year(school_id, year)
-
-        #total_paid_via_cash_term = paid_via_method_term(school_id, term_id, 'Cash')
-        #total_paid_via_cash_year = paid_via_method_year(school_id, year, 'Cash')
-
-        #total_paid_via_bank_term = paid_via_method_term(school_id, term_id, 'Bank')
-        #total_paid_via_bank_year = paid_via_method_year(school_id, year, 'Bank')
-
-        #total_paid_via_mpesa_term = paid_via_method_term(school_id, term_id, 'Mpesa')
-        #total_paid_via_mpesa_year = paid_via_method_year(school_id, year, 'Mpesa')
-
-        total_paid_via_cash_today = paid_via_method_today(school_id, 'Cash')
-        total_paid_via_bank_today = paid_via_method_today(school_id, 'Bank')
-        total_paid_via_mpesa_today = paid_via_method_today(school_id, 'Mpesa')
-        total_banked_today = total_paid_via_bank_today + total_paid_via_mpesa_today
-
-        # Logging the fetched payments for debugging
-        logging.debug(f"Dashboard Recent Payments: {recent_payments_query}")
-
-        return render_template('dashboard.html', user_name=user_name, school_name=school_name, recent_payments=recent_payments_query, 
-                               total_active_students=total_active_students, total_inactive_students_term=total_inactive_students_term, 
-                               total_inactive_students_year=total_inactive_students_year, total_paid_via_cash_today=total_paid_via_cash_today, 
-                               total_banked_today=total_banked_today
-                               )
-    except Exception as e:
-        logging.error(f"Error fetching recent payments for dashboard: {e}")
-        flash('An error occurred while fetching recent payments.', 'danger')
-        return render_template('dashboard.html', user_name=user_name, school_name=school_name, recent_payments=[])
-
+    return render_template('dashboard.html', user_name=user_name, school_name=school_name)
 
 @app.route('/logout', strict_slashes=False)
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
     #return render_template('logout.html')
 
 @app.route('/students', methods=['GET'], strict_slashes=False)
 @login_required
 def students():
     print("Debugging: Inside students route")
-    current_term = Term.query.filter_by(school_id=current_user.school_id, current=True).first()
+    current_term = Term.query.filter_by(current=True).first()
     if current_term:
         print("Debugging: Current term found")
         grade_filter = request.args.get('grade', 'all')
@@ -191,15 +172,9 @@ def new_student():
 
     if form.validate_on_submit():
         print("Debugging: Form submitted")
-        current_term = Term.query.filter_by(school_id=current_user.school_id, current=True).first()
+        current_term = Term.query.filter_by(current=True).first()
         current_year = datetime.now().year
-
-        school = School.query.get(current_user.school_id)
-        student_id = generate_custom_student_id(school.name, current_user.school_id)
-        print("Debugging: Custom student ID:", student_id)
-
         student = Student(
-            student_id=student_id,
             full_name=form.full_name.data, 
             dob=form.dob.data,
             gender=form.gender.data,
@@ -236,7 +211,7 @@ def new_student():
     return render_template('students.html', students=students, form=form, terms=terms)
 
 
-@app.route('/students/<string:student_id>/update', methods=['GET', 'POST'], strict_slashes=False)
+@app.route('/students/<int:student_id>/update', methods=['GET', 'POST'], strict_slashes=False)
 def update_student(student_id):
     student = Student.query.get_or_404(student_id)
     form = Student_registrationForm(obj=student)
@@ -262,7 +237,7 @@ def update_student(student_id):
         form.grade.data = student.grade 
     return render_template('update_student.html', form=form, student=student)
 
-@app.route('/students/<string:student_id>/inactive', methods=['POST'], strict_slashes=False)
+@app.route('/students/<int:student_id>/inactive', methods=['POST'], strict_slashes=False)
 @login_required
 def toggle_student_status(student_id):
     student = Student.query.get_or_404(student_id)
@@ -282,11 +257,11 @@ def manage_terms():
         term_name = form.name.data
         term_year = form.year.data
 
-        # Check if term already exists with the same name and year for the current school
+        # Check if term already exists with the same name and year
         existing_term = Term.query.filter_by(name=term_name, year=term_year, school_id=current_user.school_id).first()
         
         if term_id:
-            term = Term.query.filter_by(id=term_id, school_id=current_user.school_id).first()
+            term = Term.query.get(term_id)
             if not term:
                 flash('Term not found.', 'danger')
                 return redirect(url_for('manage_terms'))
@@ -298,7 +273,7 @@ def manage_terms():
             db.session.add(term)
 
         if form.current.data:
-            # Unset the current term for all terms in the same year and school
+            # Unset the current term for all terms in the same year
             Term.query.filter_by(year=form.year.data, school_id=current_user.school_id).update({Term.current: False})
             db.session.commit()
 
@@ -307,7 +282,6 @@ def manage_terms():
         term.end_date = form.end_date.data
         term.year = form.year.data
         term.current = form.current.data
-        term.school_id = current_user.school_id
         db.session.commit()
         
         flash('Term has been added/updated!', 'success')
@@ -315,7 +289,6 @@ def manage_terms():
 
     terms = Term.query.filter_by(school_id=current_user.school_id).all()
     return render_template('manage_terms.html', form=form, terms=terms)
-
 
 @app.route('/delete_student', methods=['POST'], strict_slashes=False)
 def delete_student(student_id):
@@ -675,7 +648,7 @@ def manage_additional_fees():
     additional_fees = AdditionalFee.query.filter_by(school_id=school_id).all()
     return render_template('manage_add_fees.html', form=form, additional_fees=additional_fees)
 
-@app.route('/student/<string:student_id>/add_fee', methods=['GET', 'POST'])
+@app.route('/student/<int:student_id>/add_fee', methods=['GET', 'POST'])
 @login_required
 def add_additional_fee(student_id):
     student = Student.query.get_or_404(student_id)
@@ -709,25 +682,19 @@ def add_additional_fee(student_id):
 @login_required
 def migrate_term():
     form = MigrateTermForm()
-    current_term = Term.query.filter_by(school_id=current_user.school_id, current=True).first()
+    current_term = Term.query.filter_by(current=True).first()
     
     if form.validate_on_submit():
         term_id = form.term_id.data
-        new_term = Term.query.filter_by(id=term_id, school_id=current_user.school_id).first()
-        
-        if not new_term:
-            flash('Term not found.', 'danger')
-            return redirect(url_for('migrate_term'))
+        new_term = Term.query.get_or_404(term_id)
         
         # Migrate active students and their payments to the new term
         active_students = Student.query.filter_by(school_id=current_user.school_id, active=True).all()
-        if active_students:
-            for student in active_students:
-                student.current_term_id = term_id
-            db.session.commit()
-            flash('Active students and their payments have been migrated successfully.', 'success')
-        else:
-            flash('No active students found.', 'info')
+        for student in active_students:
+            student.current_term_id = term_id
+
+        db.session.commit()
+        flash('Active students and their payments have been migrated successfully.', 'success')
         return redirect(url_for('migrate_term'))
 
     return render_template('migrate_term.html', form=form, current_term=current_term)
@@ -737,58 +704,68 @@ def migrate_term():
 def new_payment():
     form = Fee_paymentForm()
 
-    logging.debug("Inside new_payment route")
-    logging.debug(f"Form errors: {form.errors}")
-
-    if form.is_submitted():
-        logging.debug("Form is submitted")
-
-    if form.validate():
-        logging.debug("Form is valid")
-
     if form.validate_on_submit():
         current_term = Term.query.filter_by(current=True, school_id=current_user.school_id).first()
         if not current_term:
             flash('No current term is set. Please set a current term before making payments.', 'danger')
             return redirect(url_for('new_payment'))
-        
-        logging.debug(f"Current term ID: {current_term.id}")
+        print(f"Current term ID: {current_term.id}")
+
 
         pay_date = datetime.today().date()
         student_id = form.student_id.data
         method = form.method.data
         amount = float(form.amount.data)
-        code = form.code.data if method in ['Mpesa', 'Bank'] else None
+        code = form.code.data if method in ['Mpesa', 'Bank'] else None  # Get the code from the form
         school_id = current_user.school_id
         term_id = current_term.id
 
-        logging.debug(f"Payment date: {pay_date}")
-        logging.debug(f"Student ID: {student_id}")
-        logging.debug(f"Method: {method}")
-        logging.debug(f"Amount: {amount}")
-        logging.debug(f"Code: {code}")
-        logging.debug(f"School ID: {school_id}")
-        logging.debug(f"Term ID: {term_id}")
+        print(f"Payment date: {pay_date}")
+        print(f"Student ID: {student_id}")
+        print(f"Method: {method}")
+        print(f"Amount: {amount}")
+        print(f"Code: {code}")
+        print(f"School ID: {school_id}")
+        print(f"Term ID: {term_id}")
 
-        student = Student.query.filter_by(student_id=student_id, school_id=school_id).first()
+
+        # Check if student exists in the current user's school
+        student = Student.query.filter_by(student_id=student_id, school_id=current_user.school_id).first()
         if not student:
             flash('Student not found', 'danger')
             return redirect(url_for('new_payment'))
 
+        # Calculate current balance and carry forward balance
         balance, cf_balance = calculate_balance(student_id)
 
-        logging.debug(f"Current balance: {balance}")
-        logging.debug(f"Carry forward balance: {cf_balance}")
+        print(f"Current balance: {balance}")
+        print(f"Carry forward balance: {cf_balance}")
 
         if method == 'Mpesa':
-            if not process_mpesa_transaction(code, amount):
+            # Check if the Mpesa transaction code has already been used
+            mpesa_transaction = MpesaTransaction.query.filter_by(code=code).first()
+            if mpesa_transaction and mpesa_transaction.used:
+                flash('Mpesa transaction code has already been used.', 'danger')
                 return redirect(url_for('new_payment'))
+
+            # Verify the Mpesa transaction using the code from the form
+            if not check_transaction_status(code):
+                flash('Mpesa transaction verification failed. Please try again.', 'danger')
+                return redirect(url_for('new_payment'))
+
+            # Mark the transaction code as used
+            if mpesa_transaction:
+                mpesa_transaction.used = True
+            else:
+                mpesa_transaction = MpesaTransaction(code=code, verified=True, used=True)
+            db.session.add(mpesa_transaction)
+            db.session.commit()
 
         new_payment = FeePayment(
             method=method,
             amount=amount,
             code=code,
-            balance=balance - amount,
+            balance=balance - amount,  # Update balance after the new payment
             cf_balance=cf_balance,
             school_id=school_id,
             student_id=student.student_id,
@@ -800,17 +777,17 @@ def new_payment():
             db.session.add(new_payment)
             db.session.commit()
             flash('Payment added successfully', 'success')
-            logging.debug(f"New payment added with ID: {new_payment.id}")
-            return redirect(url_for('print_receipt', student_id=student.student_id, payment_id=new_payment.id))
+            print(f"New payment added with ID: {new_payment.id}")
         except Exception as e:
             db.session.rollback()
             flash(f'Error adding payment: {str(e)}', 'danger')
-            logging.error(f"Error adding payment: {str(e)}")
+            print(f"Error adding payment: {str(e)}")
 
-    logging.debug("Form did not validate", form.errors)
+        return redirect(url_for('print_receipt', student_id=student.student_id, payment_id=new_payment.id))
+
+    print("Form did not validate", form.errors)
     payments = FeePayment.query.filter_by(school_id=current_user.school_id).all()
     return render_template('new_payment.html', form=form, payments=payments)
-
 """
 @app.route('/student/<int:student_id>/receipt/<int:payment_id>', methods=['GET'])
 def print_receipt(student_id, payment_id):
@@ -839,11 +816,7 @@ def student_payments():
 
     for student in students:
         total_paid = db.session.query(func.sum(FeePayment.amount)).filter_by(student_id=student.student_id, term_id=current_term.id).scalar() or 0.0
-        try:
-            balance, cf_balance = calculate_balance(student.student_id)
-        except FeeStructureNotFoundError as e:
-            flash(str(e), 'warning')
-            return redirect(url_for('manage_fee_structure'))
+        balance, cf_balance = calculate_balance(student.student_id)
 
         student_payment_details.append({
             'student': student,
@@ -856,8 +829,7 @@ def student_payments():
 
     return render_template('student_payments.html', student_payment_details=student_payment_details, current_term=current_term, grades=grades, selected_grade=grade_filter)
 
-
-@app.route('/student/<string:student_id>/receipt/<int:payment_id>', methods=['GET'])
+@app.route('/student/<int:student_id>/receipt/<int:payment_id>', methods=['GET'])
 @login_required
 def print_receipt(student_id, payment_id):
     student = Student.query.get_or_404(student_id)
@@ -875,23 +847,20 @@ def print_receipt(student_id, payment_id):
         balance, cf_balance = calculate_balance(student_id)
 
         return render_template('receipt.html', student=student, payment=payment, balance=balance, cf_balance=cf_balance, current_term=current_term, school=school)
- 
-@app.route('/recent_payments', strict_slashes=False)
+    
+@app.route('/dashboard/recent_payments')
 @login_required
 def recent_payments():
-    try:
-        # Fetch all recent payments
-        recent_payments_query = get_recent_payments(current_user.school_id, limit=None)  # No limit to get all payments
+    # Query recent payments ordered by payment date descending
+    recent_payments = db.session.query(FeePayment, Student)\
+        .join(Student, FeePayment.student_id == Student.student_id)\
+        .filter(FeePayment.school_id == current_user.school_id)\
+        .order_by(FeePayment.pay_date.desc())\
+        .limit(10)\
+        .all()
 
-        # Logging the fetched payments for debugging
-        logging.debug(f"All Recent Payments: {recent_payments_query}")
+    return render_template('dashboard.html', recent_payments=recent_payments)
 
-        return render_template('recent_payments.html', recent_payments=recent_payments_query)
-    except Exception as e:
-        logging.error(f"Error fetching all recent payments: {e}")
-        flash('An error occurred while fetching recent payments.', 'danger')
-        return render_template('recent_payments.html', recent_payments=[])
-    
 @app.route('/fee_reports', methods=['GET'])
 @login_required
 def fee_reports():
@@ -959,147 +928,9 @@ def fee_reports():
         })
 
     return render_template('fee_reports.html', grade_details=grade_details)
-"""
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf'}
-
-def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'pdf'}
-    logging.debug(f"Checking if file {filename} is allowed")
-    is_allowed = '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-    logging.debug(f"File {filename} allowed: {is_allowed}")
-    return is_allowed"""
-
-def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'pdf'}
-    print(f"Debug: Checking if file {filename} is allowed")
-    is_allowed = '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-    print(f"Debug: File {filename} allowed: {is_allowed}")
-    return is_allowed
-
-
-@app.route('/upload_statement', methods=['GET', 'POST'])
-@login_required
-def upload_statement():
-    print("Debug: Inside upload_statement route")
-    if request.method == 'POST':
-        print("Debug: POST request detected")
-        if 'file' not in request.files:
-            print("Debug: No file part in request")
-            flash('No file part', 'danger')
-            return redirect(request.url)
-
-        file = request.files['file']
-        print(f"Debug: File received: {file.filename}")
-
-        if file.filename == '':
-            print("Debug: No selected file")
-            flash('No selected file', 'danger')
-            return redirect(request.url)
-
-        if file and allowed_file(file.filename):
-            print(f"Debug: File {file.filename} is allowed")
-            filename = secure_filename(file.filename)
-            upload_folder = current_app.config['UPLOAD_FOLDER']
-            filepath = os.path.join(upload_folder, filename)
-            print(f"Debug: Filepath set to {filepath}")
-
-            try:
-                # Ensure the upload directory exists
-                if not os.path.exists(upload_folder):
-                    os.makedirs(upload_folder)
-                    print(f"Debug: Created upload directory {upload_folder}")
-                
-                file.save(filepath)
-                print(f"Debug: File saved to {filepath}")
-
-                bank_statement = BankStatement(filename=filename)
-                db.session.add(bank_statement)
-                db.session.commit()
-                print(f"Debug: Bank statement record added to database with filename {filename}")
-
-                # Extract transaction codes from the PDF
-                extracted_transactions = extract_transactions_from_pdf(filepath)
-                print(f"Debug: Extracted transactions: {extracted_transactions}")
-
-                # Store extracted transactions in session for verification
-                session['extracted_transactions'] = extracted_transactions
-                
-                flash('File uploaded and transactions extracted successfully.', 'success')
-                return redirect(url_for('verify_transactions'))
-            except Exception as e:
-                print(f"Debug: Exception occurred: {str(e)}")
-                flash('An error occurred while processing the file.', 'danger')
-                return redirect(request.url)
-        else:
-            print("Debug: File not allowed")
-            flash('File type not allowed', 'danger')
-            return redirect(request.url)
-
-    print("Debug: GET request detected")
-    return render_template('verify_transactions.html')
-
-"""2nd one
-@app.route('/upload_statement', methods=['GET', 'POST'])
-@login_required
-def upload_statement():
-    logging.debug("Inside upload_statement route")
-    if request.method == 'POST':
-        logging.debug("POST request detected")
-        if 'file' not in request.files:
-            logging.debug("No file part in request")
-            flash('No file part', 'danger')
-            return redirect(request.url)
-
-        file = request.files['file']
-        logging.debug(f"File received: {file.filename}")
-
-        if file.filename == '':
-            logging.debug("No selected file")
-            flash('No selected file', 'danger')
-            return redirect(request.url)
-
-        if file and allowed_file(file.filename):
-            logging.debug(f"File {file.filename} is allowed")
-            filename = secure_filename(file.filename)
-            upload_folder = app.config['UPLOAD_FOLDER']
-            filepath = os.path.join(upload_folder, filename)
-            logging.debug(f"Filepath set to {filepath}")
-
-            try:
-                # Ensure the upload directory exists
-                if not os.path.exists(upload_folder):
-                    os.makedirs(upload_folder)
-                    logging.debug(f"Created upload directory {upload_folder}")
-                
-                file.save(filepath)
-                logging.debug(f"File saved to {filepath}")
-
-                bank_statement = BankStatement(filename=filename)
-                db.session.add(bank_statement)
-                db.session.commit()
-                logging.debug(f"Bank statement record added to database with filename {filename}")
-
-                # Extract transaction codes from the PDF
-                extracted_transactions = extract_transactions_from_pdf(filepath)
-                logging.debug(f"Extracted transactions: {extracted_transactions}")
-
-                # Store extracted transactions in session for verification
-                session['extracted_transactions'] = extracted_transactions
-                
-                flash('File uploaded and transactions extracted successfully.', 'success')
-                return redirect(url_for('verify_transactions'))
-            except Exception as e:
-                logging.error(f"Exception occurred: {str(e)}")
-                flash('An error occurred while processing the file.', 'danger')
-                return redirect(request.url)
-        else:
-            logging.debug("File not allowed")
-            flash('File type not allowed', 'danger')
-            return redirect(request.url)
-
-    logging.debug("GET request detected")
-    return render_template('verify_transactions.html')
 
 @app.route('/upload_statement', methods=['GET', 'POST'])
 @login_required
@@ -1146,7 +977,7 @@ def upload_statement():
 
     print("Debug: GET request detected")
     return render_template('verify_transactions.html')
-"""
+
 @app.route('/verify_transactions', methods=['GET', 'POST'])
 @login_required
 def verify_transactions():

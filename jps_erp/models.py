@@ -60,7 +60,7 @@ class FeeStructure(db.Model):
     )
 
 student_additional_fee = sa.Table('student_additional_fee', db.Model.metadata,
-    sa.Column('student_id', sa.String, sa.ForeignKey('student.student_id'), primary_key=True),
+    sa.Column('student_id', sa.Integer, sa.ForeignKey('student.student_id'), primary_key=True),
     sa.Column('additional_fee_id', sa.Integer, sa.ForeignKey('additional_fee.id'), primary_key=True)
 )
 
@@ -84,7 +84,7 @@ class StudentAdditionalFee(db.Model):
     additional_fee = so.relationship('AdditionalFee', back_populates='students')
 """
 class Student(db.Model):
-    student_id = sa.Column(sa.String(10), primary_key=True, unique=True, nullable=False)
+    student_id = sa.Column(sa.Integer, primary_key=True, unique=True, autoincrement=True)
     full_name = sa.Column(sa.String(100), nullable=False)
     dob = sa.Column(sa.String(10), nullable=False)
     gender = sa.Column(sa.String(10), nullable=False)
@@ -103,8 +103,10 @@ class Student(db.Model):
     additional_fees = so.relationship('AdditionalFee', secondary=student_additional_fee, back_populates='students')
     current_term = so.relationship('Term', back_populates='students', foreign_keys=[current_term_id])
 
-    def __repr__(self):
-        return f"Student('{self.full_name}', '{self.student_id}', '{self.grade}', '{self.school_id}')"
+    #__table_args__ = (
+        #sa.ForeignKeyConstraint(['grade', 'school_id'], ['fee_structure.grade', 'fee_structure.school_id']),
+    #)
+    
 
 class FeePayment(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True, unique=True)
@@ -115,27 +117,25 @@ class FeePayment(db.Model):
     balance = sa.Column(sa.Float, nullable=False)
     cf_balance = sa.Column(sa.Float, default=0.0)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
-    student_id = sa.Column(sa.String, sa.ForeignKey('student.student_id'), nullable=False)
+    student_id = sa.Column(sa.Integer, sa.ForeignKey('student.student_id'), nullable=False)
     term_id = sa.Column(sa.Integer, sa.ForeignKey('term.id'), nullable=False)
 
     term = so.relationship('Term', back_populates='fee_payments')
     school = so.relationship('School', back_populates='fee_payments')
     student = so.relationship('Student', back_populates='fee_payments')
-    mpesa_transaction = so.relationship('MpesaTransaction', primaryjoin="FeePayment.code == MpesaTransaction.code", foreign_keys=[code], uselist=False)
-
 
     def __repr__(self):
-        return f"FeePayment('{self.method}', Amount: '{self.amount}', Balance: '{self.balance}', Carry Forward: '{self.cf_balance}')"
+        return f"FeePayment('{self.method}', Amount: '{self.amount}', Balance: '{self.balance}', Carry Forward: '{self.carry_forward_balance}')"
 
 class MpesaTransaction(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     code = sa.Column(sa.String(20), unique=True, nullable=False)
-    amount = sa.Column(sa.Float, nullable=False)
     verified = sa.Column(sa.Boolean, default=False)
-    
+    used = sa.Column(sa.Boolean, default=False)
+    timestamp = sa.Column(sa.DateTime, default=sa.func.now())
 
     def __repr__(self):
-        return f"MpesaTransaction('{self.code}', Verified: {self.verified}, Amount: {self.amount})"
+        return f"MpesaTransaction('{self.code}', Verified: {self.verified}, Used: {self.used})"
 
 class BankStatement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
