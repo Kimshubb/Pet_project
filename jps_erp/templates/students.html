@@ -17,19 +17,20 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <form method="GET" action="{{ url_for('students') }}">
+    <form method="GET" action="{{ url_for('new_student') }}">
         <label for="grade">Select Grade</label>
-        <select name="grade" id="grade">
+        <select name="grade" id="grade" onchange="updateStreams()">
             <option value="all">All</option>
-            <option value="Playgroup">Playgroup</option>
-            <option value="PP1">PP1</option>
-            <option value="PP2">PP2</option>
-            <option value="1">Grade 1</option>
-            <option value="2">Grade 2</option>
-            <option value="3">Grade 3</option>
-            <option value="4">Grade 4</option>
-            <option value="5">Grade 5</option>
-            <option value="6">Grade 6</option>
+            {% for grade in grades %}
+                <option value="{{ grade.id }}">{{ grade.name }}</option>
+            {% endfor %}
+        </select>
+        <label for="stream">Select Stream</label>
+        <select name="stream" id="stream">
+            <option value="all">All</option>
+            {% for stream in streams %}
+                <option value="{{ stream.id }}">{{ stream.name }}</option>
+            {% endfor %}    
         </select>
         <label for="term">Select Term</label>
         <select name="term" id="term">
@@ -115,6 +116,10 @@
                         <label for="grade" class="form-label">{{ form.grade.label }}</label>
                         {{ form.grade(class="form-select", id="grade") }}
                     </div>
+                    <div class="mb-3">
+                        <label for="stream" class="form-label">{{ form.stream.label }}</label>
+                        {{ form.stream(class="form-select", id="stream") }}
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -125,18 +130,4 @@
     </div>
 </div>
 
-{% block scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const addStudentModal = document.getElementById('addStudentModal');
-    const addStudentForm = addStudentModal.querySelector('form');
-
-    addStudentModal.addEventListener('hidden.bs.modal', function() {
-        addStudentForm.reset();
-        addStudentForm.action = "{{ url_for('new_student') }}";
-        addStudentModal.querySelector('.modal-title').textContent = 'Add New Student';
-    });
-});
-</script>
-{% endblock %}
 {% endblock %}

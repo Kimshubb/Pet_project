@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm 
-from wtforms import StringField, PasswordField, SubmitField, SelectField, BooleanField, FloatField, FieldList, FormField, IntegerField, DateField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, BooleanField, FloatField, FieldList, SelectMultipleField, FormField, IntegerField, DateField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional
 from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term
 from jps_erp import db
@@ -29,15 +29,14 @@ class Sign_inForm(FlaskForm):
     submit = SubmitField('Log in')
 
 class Student_registrationForm(FlaskForm):
-    full_name = StringField('full_name', validators=[DataRequired()])
-    dob = DateField('dob', format='%Y-%m-%d', validators=[DataRequired()])
-    gender = SelectField('gender', choices=[('male', 'Male'), ('female', 'Female')])
-    guardian_name = StringField('guardian_name', validators=[DataRequired()])
-    contact_number1 = StringField('contact_number1', validators=[DataRequired()])
-    contact_number2 = StringField('contact_number2', validators=[DataRequired()])
-    grade = SelectField('Grade', choices=[('Playgroup', 'Playgroup'), ('PP1', 'PP1'), ('PP2', 'PP2'),
-                                          ('Grade 1', 'Grade 1'), ('Grade 2', 'Grade 2'), ('Grade 3', 'Grade 3'),
-                                          ('Grade 4', 'Grade 4'), ('Grade 5', 'Grade 5'), ('Grade 6', 'Grade 6')], validators=[DataRequired()])
+    full_name = StringField('Full Name', validators=[DataRequired()])
+    dob = DateField('Date of Birth', format='%Y-%m-%d', validators=[DataRequired()])
+    gender = SelectField('Gender', choices=[('male', 'Male'), ('female', 'Female')])
+    guardian_name = StringField('Guardian Name', validators=[DataRequired()])
+    contact_number1 = StringField('Contact Number 1', validators=[DataRequired()])
+    contact_number2 = StringField('Contact Number 2', validators=[DataRequired()])
+    grade = SelectField('Grade', choices=[], validators=[DataRequired()])
+    stream = SelectField('Stream', choices=[], validators=[DataRequired()])
     submit = SubmitField('Add Student')
 
     #def validate_phone_number(self, contact_number1):
@@ -98,7 +97,15 @@ class MigrateTermForm(FlaskForm):
         super(MigrateTermForm, self).__init__(*args, **kwargs)
         self.term_id.choices = [(term.id, f"{term.name} - {term.year}") for term in Term.query.all()]
 
-class ClassForm(FlaskForm):
-    name = StringField('Class Name', validators=[DataRequired()])
-    grade_id = SelectField('Grade', coerce=int, validators=[DataRequired()])
-    submit = SubmitField('Submit')
+class StreamForm(FlaskForm):
+    stream_name = StringField('Stream Name', validators=[DataRequired()])
+
+class GradeConfigurationForm(FlaskForm):
+    grades = SelectMultipleField('Grades', choices=[
+        ('Playgroup', 'Playgroup'), ('PP1', 'PP1'), ('PP2', 'PP2'),
+        ('Grade 1', 'Grade 1'), ('Grade 2', 'Grade 2'), ('Grade 3', 'Grade 3'),
+        ('Grade 4', 'Grade 4'), ('Grade 5', 'Grade 5'), ('Grade 6', 'Grade 6'),
+        ('Grade 7', 'Grade 7'), ('Grade 8', 'Grade 8')
+    ], validators=[DataRequired()])
+    streams = FieldList(FormField(StreamForm), min_entries=1)
+    submit = SubmitField('Save Configuration')

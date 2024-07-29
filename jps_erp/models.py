@@ -40,10 +40,28 @@ class School(db.Model):
     fee_payments = so.relationship('FeePayment', back_populates='school', lazy=True)
     audits = so.relationship('Audit', back_populates='school', lazy=True)
     additional_fees = so.relationship('AdditionalFee', back_populates='school', lazy=True)
+    grades = so.relationship('Grade', back_populates='school', lazy=True)
+
+class Grade(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    name = sa.Column(sa.String(20), nullable=False)  # e.g., "Grade 1"
+    school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
+    
+    school = so.relationship('School', back_populates='grades')
+    streams = so.relationship('Stream', back_populates='grade', lazy=True)
+    fee_structure = so.relationship('FeeStructure', back_populates='grade', uselist=False)  # One-to-One relationship
+    students = so.relationship('Student', back_populates='grade', lazy=True)
+
+class Stream(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    name = sa.Column(sa.String(20), nullable=False)  # e.g., "1A"
+    grade_id = sa.Column(sa.Integer, sa.ForeignKey('grade.id'), nullable=False)
+    
+    grade = so.relationship('Grade', back_populates='streams')
+    students = so.relationship('Student', back_populates='stream', lazy=True)
 
 class FeeStructure(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    grade = sa.Column(sa.String(10), nullable=False)
     tuition_fee = sa.Column(sa.Float, nullable=False)
     ass_books = sa.Column(sa.Float, nullable=False)
     diary_fee = sa.Column(sa.Float, nullable=False)
@@ -51,13 +69,11 @@ class FeeStructure(db.Model):
     others = sa.Column(sa.Float, nullable=False)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
     term_id = sa.Column(sa.Integer, sa.ForeignKey('term.id'), nullable=False)
+    grade_id = sa.Column(sa.Integer, sa.ForeignKey('grade.id'), nullable=False, unique=True)  # One-to-One relationship
     
     school = so.relationship('School', back_populates='fee_structures')
     term = so.relationship('Term', back_populates='fee_structures')
-
-    __table_args__ = (
-        sa.UniqueConstraint('grade', 'school_id', 'term_id', name='unique_grade_school_term'),
-    )
+    grade = so.relationship('Grade', back_populates='fee_structure')
 
 student_additional_fee = sa.Table('student_additional_fee', db.Model.metadata,
     sa.Column('student_id', sa.String, sa.ForeignKey('student.student_id'), primary_key=True),
@@ -68,21 +84,11 @@ class AdditionalFee(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     fee_name = sa.Column(sa.String(100), nullable=False)
     amount = sa.Column(sa.Float, nullable=False)
-    #student_id = sa.Column(sa.Integer, sa.ForeignKey('student.student_id'), nullable=False)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
     
     school = so.relationship('School', back_populates='additional_fees')
     students = so.relationship('Student', secondary=student_additional_fee, back_populates='additional_fees')
-    
-"""
-class StudentAdditionalFee(db.Model):
-    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    student_id = sa.Column(sa.Integer, sa.ForeignKey('student.student_id'), nullable=False)
-    additional_fee_id = sa.Column(sa.Integer, sa.ForeignKey('additional_fee.id'), nullable=False)
-    
-    student = so.relationship('Student', back_populates='additional_fee')
-    additional_fee = so.relationship('AdditionalFee', back_populates='students')
-"""
+
 class Student(db.Model):
     student_id = sa.Column(sa.String(10), primary_key=True, unique=True, nullable=False)
     full_name = sa.Column(sa.String(100), nullable=False)
@@ -91,7 +97,8 @@ class Student(db.Model):
     guardian_name = sa.Column(sa.String(100), nullable=False)
     contact_number1 = sa.Column(sa.String(20), nullable=False)
     contact_number2 = sa.Column(sa.String(20), nullable=False)
-    grade = sa.Column(sa.String(10), nullable=False)
+    grade_id = sa.Column(sa.Integer, sa.ForeignKey('grade.id'), nullable=False)
+    stream_id = sa.Column(sa.Integer, sa.ForeignKey('stream.id'), nullable=False)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
     active = sa.Column(sa.Boolean, default=True, nullable=False)  # Indicates if the student is currently enrolled
     left_date = sa.Column(sa.Date, nullable=True)  # Date when the student left, if applicable
@@ -99,12 +106,14 @@ class Student(db.Model):
     year = sa.Column(sa.Integer, nullable=False)
     
     school = so.relationship('School', back_populates='students')
+    grade = so.relationship('Grade', back_populates='students')
+    stream = so.relationship('Stream', back_populates='students')
     fee_payments = so.relationship('FeePayment', back_populates='student', lazy=True)
     additional_fees = so.relationship('AdditionalFee', secondary=student_additional_fee, back_populates='students')
     current_term = so.relationship('Term', back_populates='students', foreign_keys=[current_term_id])
 
     def __repr__(self):
-        return f"Student('{self.full_name}', '{self.student_id}', '{self.grade}', '{self.school_id}')"
+        return f"Student('{self.full_name}', '{self.student_id}', '{self.grade_id}', '{self.stream_id}', '{self.school_id}')"
 
 class FeePayment(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True, unique=True)
@@ -123,7 +132,6 @@ class FeePayment(db.Model):
     student = so.relationship('Student', back_populates='fee_payments')
     mpesa_transaction = so.relationship('MpesaTransaction', primaryjoin="FeePayment.code == MpesaTransaction.code", foreign_keys=[code], uselist=False)
 
-
     def __repr__(self):
         return f"FeePayment('{self.method}', Amount: '{self.amount}', Balance: '{self.balance}', Carry Forward: '{self.cf_balance}')"
 
@@ -133,7 +141,6 @@ class MpesaTransaction(db.Model):
     amount = sa.Column(sa.Float, nullable=False)
     verified = sa.Column(sa.Boolean, default=False)
     
-
     def __repr__(self):
         return f"MpesaTransaction('{self.code}', Verified: {self.verified}, Amount: {self.amount})"
 
@@ -153,14 +160,10 @@ class Term(db.Model):
     students = so.relationship('Student', back_populates='current_term')
     fee_payments = so.relationship('FeePayment', back_populates='term')
     fee_structures = so.relationship('FeeStructure', back_populates='term')
-
-    #__table_args__ = (sa.UniqueConstraint('name', 'year', name='unique_term_name_year'),
-    #)
     
     def __repr__(self):
         return f"Term('{self.name}',  '{self.year}', '{self.start_date}', '{self.end_date}')"
-
-
+    
 class Audit(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True, unique=True)
     action = sa.Column(sa.String(50), nullable=False)

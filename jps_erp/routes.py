@@ -1,10 +1,10 @@
 
 from flask import render_template, url_for, flash, redirect, request, jsonify, current_app, session
-from jps_erp.forms import Sign_inForm, User_registrationForm, Student_registrationForm, Fee_structureForm, ClassForm, Additional_feeForm, TermForm, Fee_paymentForm, AssociateFeeForm, MigrateTermForm    
+from jps_erp.forms import Sign_inForm, User_registrationForm, Student_registrationForm, Fee_structureForm, GradeConfigurationForm, Additional_feeForm, TermForm, Fee_paymentForm, AssociateFeeForm, MigrateTermForm    
 from jps_erp import app, db
 from jps_erp.daraja import check_transaction_status
 from flask_login import login_user, current_user, UserMixin, logout_user, login_required
-from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, BankStatement, student_additional_fee
+from jps_erp.models import User, Student, School, Grade, Stream, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, BankStatement, student_additional_fee
 import sqlalchemy as sa
 from sqlalchemy import func
 from datetime import datetime
@@ -200,17 +200,28 @@ def students():
         print("Debugging: No current term set")
         return "No current term set."
 
-
-
 @app.route('/students/add', methods=['GET', 'POST'], strict_slashes=False)
 @login_required
 def new_student():
     print("Debugging: Inside new_student route")
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
-    
+
     form = Student_registrationForm()
-    print("Debugging: Form data:", form.data)
+
+    # Populate grade choices
+    grades = Grade.query.filter_by(school_id=current_user.school_id).all()
+    form.grade.choices = [(g.id, g.name) for g in grades]
+    print("Debugging: Grades loaded:", form.grade.choices)
+
+    # Populate stream choices based on the selected grade
+    if form.grade.data:
+        streams = Stream.query.filter_by(grade_id=form.grade.data).all()
+        form.stream.choices = [(s.id, s.name) for s in streams]
+        print("Debugging: Streams loaded for grade {}: {}".format(form.grade.data, form.stream.choices))
+    else:
+        form.stream.choices = []
+        print("Debugging: No grade selected, streams set to empty")
 
     if form.validate_on_submit():
         print("Debugging: Form submitted")
@@ -220,13 +231,14 @@ def new_student():
         student_id = generate_custom_student_id(current_user.school.name, current_year)
         student = Student(
             student_id=student_id,
-            full_name=form.full_name.data, 
+            full_name=form.full_name.data,
             dob=form.dob.data,
             gender=form.gender.data,
             guardian_name=form.guardian_name.data,
             contact_number1=form.contact_number1.data,
             contact_number2=form.contact_number2.data,
-            grade=form.grade.data,
+            grade_id=form.grade.data,
+            stream_id=form.stream.data,
             school_id=current_user.school_id,
             year=current_year,
             current_term_id=current_term.id,
@@ -242,18 +254,30 @@ def new_student():
 
     grade_filter = request.args.get('grade', 'all')
     term_filter = request.args.get('term', 'all')
+    stream_filter = request.args.get('stream', 'all')
 
     query = Student.query
 
     if grade_filter != 'all':
-        query = query.filter_by(grade=grade_filter)
+        query = query.filter_by(grade_id=grade_filter)
     if term_filter != 'all':
         query = query.filter_by(current_term_id=term_filter)
+    if stream_filter != 'all':
+        query = query.filter_by(stream_id=stream_filter)
 
     students = query.all()
     terms = Term.query.all()  # Get all terms for the term dropdown
+    grades = Grade.query.filter_by(school_id=current_user.school_id).all()
+    streams = Stream.query.filter(Stream.grade_id.in_([grade.id for grade in grades])).all()
 
-    return render_template('students.html', students=students, form=form, terms=terms)
+    return render_template('students.html', students=students, form=form, terms=terms, grades=grades, streams=streams)
+
+@app.route('/get_streams/<int:grade_id>')
+@login_required
+def get_streams(grade_id):
+    streams = Stream.query.filter_by(grade_id=grade_id).all()
+    stream_list = [{'id': s.id, 'name': s.name} for s in streams]
+    return jsonify(stream_list)
 
 @app.route('/students/<string:student_id>/update', methods=['GET', 'POST'], strict_slashes=False)
 def update_student(student_id):
@@ -1084,62 +1108,32 @@ def verify_transactions():
     print("Debug: GET request detected for verification")
     return render_template('verify_transactions.html')
 
-"""
-@app.route('/classes', methods=['GET', 'POST'])
+@app.route('/configure-grades', methods=['GET', 'POST'], strict_slashes=False)
 @login_required
-def manage_classes():
-    form = ClassForm()
-    # Populate the grade choices dynamically from the global Grade model
-    form.grade_id.choices = [(grade.id, grade.name) for grade in Grade.query.all()]
-    
-    if form.validate_on_submit():
-        # Ensure the class name is unique within the selected grade
-        existing_class = Class.query.filter_by(name=form.name.data, grade_id=form.grade_id.data).first()
-        if existing_class:
-            flash('Class with this name already exists in the selected grade.', 'warning')
-        else:
-            new_class = Class(name=form.name.data, grade_id=form.grade_id.data, school_id=current_user.school_id)
-            db.session.add(new_class)
-            db.session.commit()
-            flash('Class has been added!', 'success')
-            return redirect(url_for('manage_classes'))
-    
-    # Fetch grades and their classes for the current user's school
-    grades = Grade.query.all()  # Fetch global grades
-    classes = Class.query.filter_by(school_id=current_user.school_id).all()
-    return render_template('manage_classes.html', title='Manage Classes', grades=grades, classes=classes, form=form)
+def configure_grades():
+    form = GradeConfigurationForm()
 
-@app.route('/class/<int:class_id>/update', methods=['GET', 'POST'])
-@login_required
-def update_class(class_id):
-    class_ = Class.query.get_or_404(class_id)
-    form = ClassForm()
-    # Populate the grade choices dynamically from the global Grade model
-    form.grade_id.choices = [(grade.id, grade.name) for grade in Grade.query.all()]
-    
     if form.validate_on_submit():
-        # Ensure the class name is unique within the selected grade
-        existing_class = Class.query.filter_by(name=form.name.data, grade_id=form.grade_id.data).first()
-        if existing_class and existing_class.id != class_.id:
-            flash('Class with this name already exists in the selected grade.', 'warning')
-        else:
-            class_.name = form.name.data
-            class_.grade_id = form.grade_id.data
-            db.session.commit()
-            flash('Class has been updated!', 'success')
-            return redirect(url_for('manage_classes'))
-        flash('Error updating class. Please try again.', 'danger')
-    
-    form.name.data = class_.name
-    form.grade_id.data = class_.grade_id
-    grades = Grade.query.all()  # Fetch global grades
-    return render_template('manage_classes.html', title='Update Class', grades=grades, form=form)
+        for grade_name in form.grades.data:
+            grade = Grade.query.filter_by(name=grade_name, school_id=current_user.school_id).first()
+            if not grade:
+                grade = Grade(name=grade_name, school_id=current_user.school_id)
+                db.session.add(grade)
+                db.session.commit()  # Commit to get grade.id for stream relationships
 
-@app.route('/class/<int:class_id>/delete', methods=['POST'])
-@login_required
-def delete_class(class_id):
-    class_ = Class.query.get_or_404(class_id)
-    db.session.delete(class_)
-    db.session.commit()
-    flash('Class has been deleted!', 'success')
-    return redirect(url_for('manage_classes'))"""
+            existing_streams = {stream.name: stream for stream in grade.streams}
+            for stream_form in form.streams:
+                stream_name = stream_form.stream_name.data
+                if stream_name not in existing_streams:
+                    stream = Stream(name=stream_name, grade_id=grade.id)
+                    db.session.add(stream)
+
+        db.session.commit()
+        flash('Grades and Streams successfully configured!', 'success')
+        return redirect(url_for('configure_grades'))
+    else:
+        print("Debugging: Form validation failed", form.errors)
+        flash('Form validation failed! Please check the entered data.', 'danger')
+
+    grades = Grade.query.filter_by(school_id=current_user.school_id).all()
+    return render_template('configure_grades.html', form=form, grades=grades)

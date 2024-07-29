@@ -1,8 +1,12 @@
 {% extends "dashboard.html" %}
-
 {% block content %}
-<div class="container mt-4">
-    <h2>Settings</h2>
+<div class="jumbotron p-3">
+    <h2>Students 
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-success float-right" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+            Add New Student
+        </button>
+    </h2>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -12,25 +16,159 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <ul class="list-group">
-        <li class="list-group-item">
-            <a href="{{ url_for('manage_terms') }}">Manage Terms</a>
-        </li>
-        <li class="list-group-item">
-            <a href="{{ url_for('manage_additional_fees') }}">Add Additional Fees</a>
-        </li>
-        <li class="list-group-item">
-            <a href="{{ url_for('manage_fee_structure') }}">Define Fee Structure</a>
-        </li>
-        <li class="list-group-item">
-            <a href="{{ url_for('migrate_term') }}">Migrate Students to new term</a>
-        </li>
-        <li class="list-group-item">
-            <a href="{{ url_for('fee_reports') }}">See financial status</a>
-        </li>
-        <li class="list-group-item">
-            <a href="{{ url_for('verify_transactions') }}">Verify Payments</a>
-        </li>
-    </ul>
+    <form method="GET" action="{{ url_for('students') }}">
+        <label for="grade">Select Grade</label>
+        <select name="grade" id="grade">
+            <option value="all">All</option>
+            {% for grade in grades %}
+                <option value="{{ grade.id }}" {% if request.args.get('grade') == grade.id %}selected{% endif %}>{{ grade.name }}</option>
+            {% endfor %}
+        </select>
+        <label for="stream">Select Stream</label>
+        <select name="stream" id="stream">
+            <option value="all">All</option>
+            {% for stream in streams %}
+                <option value="{{ stream.id }}" {% if request.args.get('stream') == stream.id %}selected{% endif %}>{{ stream.name }}</option>
+            {% endfor %}    
+        </select>
+        <label for="term">Select Term</label>
+        <select name="term" id="term">
+            <option value="all">All</option>
+            {% for term in terms %}
+                <option value="{{ term.id }}" {% if request.args.get('term') == term.id %}selected{% endif %}>{{ term.name }} - {{ term.year }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Full Name</th>
+                <th>Date of Birth</th>
+                <th>Gender</th>
+                <th>Guardian Name</th>
+                <th>Primary Contact</th>
+                <th>Alternative Contact </th>
+                <th>Grade</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+                <tr>
+                    <td>{{ student.student_id }}</td>
+                    <td>{{ student.full_name }}</td>
+                    <td>{{ student.dob }}</td>
+                    <td>{{ student.gender }}</td>
+                    <td>{{ student.guardian_name }}</td>
+                    <td>{{ student.contact_number1 }}</td>
+                    <td>{{ student.contact_number2 }}</td>
+                    <td>{{ student.grade.name }}</td>
+                    <td>
+                        <a href="{{ url_for('update_student', student_id=student.student_id) }}" class="btn btn-warning btn-xs">Edit</a>
+                        <form method="POST" action="{{ url_for('toggle_student_status', student_id=student.student_id) }}" style="display:inline-block;">
+                            <button type="submit" class="btn btn-secondary btn-xs">
+                                {{ 'Active' if student.active else 'Inactive' }}
+                            </button>
+                        </form>
+                        <a href="{{ url_for('add_additional_fee', student_id=student.student_id) }}" class="btn btn-primary btn-xs">Add Additional Fee</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
+
+<!-- Add New Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('new_student') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">{{ form.full_name.label }}</label>
+                        {{ form.full_name(class="form-control", id="full_name") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="dob" class="form-label">{{ form.dob.label }}</label>
+                        {{ form.dob(class="form-control", id="dob") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">{{ form.gender.label }}</label>
+                        {{ form.gender(class="form-select", id="gender") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="guardian_name" class="form-label">{{ form.guardian_name.label }}</label>
+                        {{ form.guardian_name(class="form-control", id="guardian_name") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_number1" class="form-label">{{ form.contact_number1.label }}</label>
+                        {{ form.contact_number1(class="form-control", id="contact_number1") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_number2" class="form-label">{{ form.contact_number2.label }}</label>
+                        {{ form.contact_number2(class="form-control", id="contact_number2") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="grade" class="form-label">{{ form.grade.label }}</label>
+                        {{ form.grade(class="form-select", id="grade") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="stream" class="form-label">{{ form.stream.label }}</label>
+                        {{ form.stream(class="form-select", id="stream") }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const addStudentModal = document.getElementById('addStudentModal');
+    const addStudentForm = addStudentModal.querySelector('form');
+    const gradeSelect = document.getElementById('grade');
+    const streamSelect = document.getElementById('stream');
+
+    // Event listener for grade change to dynamically load streams
+    gradeSelect.addEventListener('change', function() {
+        const gradeId = gradeSelect.value;
+        if (gradeId) {
+            fetch(`/get_streams/${gradeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    streamSelect.innerHTML = '<option value="">Select Stream</option>';
+                    data.forEach(stream => {
+                        const option = document.createElement('option');
+                        option.value = stream.id;
+                        option.textContent = stream.name;
+                        streamSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching streams:', error));
+        } else {
+            streamSelect.innerHTML = '<option value="">Select Stream</option>';
+        }
+    });
+
+    addStudentModal.addEventListener('hidden.bs.modal', function() {
+        addStudentForm.reset();
+        addStudentForm.action = "{{ url_for('new_student') }}";
+        addStudentModal.querySelector('.modal-title').textContent = 'Add New Student';
+        streamSelect.innerHTML = '<option value="">Select Stream</option>';
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}

@@ -1,0 +1,76 @@
+<!-- templates/configure_grades.html -->
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="jumbotron p-3">
+    <h1>Configure Grades and Streams</h1>
+    <button type="button" class="btn btn-success float-right" data-bs-toggle="modal" data-bs-target="#configureGradesModal">
+        Add New Grades and Streams
+    </button>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <h2 class="mt-4">Existing Grades and Streams</h2>
+    <div class="accordion" id="gradesAccordion">
+        {% for grade in grades %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ grade.id }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ grade.id }}" aria-expanded="false" aria-controls="collapse{{ grade.id }}">
+                    {{ grade.name }}
+                </button>
+            </h2>
+            <div id="collapse{{ grade.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ grade.id }}" data-bs-parent="#gradesAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group">
+                        {% for stream in grade.streams %}
+                        <li class="list-group-item">{{ stream.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="configureGradesModal" tabindex="-1" aria-labelledby="configureGradesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="configureGradesModalLabel">Add New Grades and Streams</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="gradesForm" method="POST" action="{{ url_for('configure_grades') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="grades" class="form-label">Select Grades:</label>
+                            {{ form.grades(class="form-select", size=10) }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="streams" class="form-label">Streams:</label>
+                            <div id="streams">
+                                {% for stream in form.streams %}
+                                <div class="input-group mb-3">
+                                    {{ stream.hidden_tag() }}
+                                    {{ stream.stream_name(class="form-control", placeholder="Stream Name") }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <input type="hidden" id="grade_id" name="grade_id">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

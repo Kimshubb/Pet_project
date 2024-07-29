@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: e65a810dadfd
+Revision ID: 6d4f3c67b75e
 Revises: 
-Create Date: 2024-07-29 02:01:33.597057
+Create Date: 2024-07-29 04:03:09.084774
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e65a810dadfd'
+revision = '6d4f3c67b75e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -41,6 +41,13 @@ def upgrade():
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('fee_name', sa.String(length=100), nullable=False),
     sa.Column('amount', sa.Float(), nullable=False),
+    sa.Column('school_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['school_id'], ['school.school_id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('grade',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('name', sa.String(length=20), nullable=False),
     sa.Column('school_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['school_id'], ['school.school_id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -79,7 +86,6 @@ def upgrade():
     )
     op.create_table('fee_structure',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('grade', sa.String(length=10), nullable=False),
     sa.Column('tuition_fee', sa.Float(), nullable=False),
     sa.Column('ass_books', sa.Float(), nullable=False),
     sa.Column('diary_fee', sa.Float(), nullable=False),
@@ -87,10 +93,19 @@ def upgrade():
     sa.Column('others', sa.Float(), nullable=False),
     sa.Column('school_id', sa.Integer(), nullable=False),
     sa.Column('term_id', sa.Integer(), nullable=False),
+    sa.Column('grade_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['grade_id'], ['grade.id'], ),
     sa.ForeignKeyConstraint(['school_id'], ['school.school_id'], ),
     sa.ForeignKeyConstraint(['term_id'], ['term.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('grade', 'school_id', 'term_id', name='unique_grade_school_term')
+    sa.UniqueConstraint('grade_id')
+    )
+    op.create_table('stream',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('name', sa.String(length=20), nullable=False),
+    sa.Column('grade_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['grade_id'], ['grade.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('student',
     sa.Column('student_id', sa.String(length=10), nullable=False),
@@ -100,14 +115,17 @@ def upgrade():
     sa.Column('guardian_name', sa.String(length=100), nullable=False),
     sa.Column('contact_number1', sa.String(length=20), nullable=False),
     sa.Column('contact_number2', sa.String(length=20), nullable=False),
-    sa.Column('grade', sa.String(length=10), nullable=False),
+    sa.Column('grade_id', sa.Integer(), nullable=False),
+    sa.Column('stream_id', sa.Integer(), nullable=False),
     sa.Column('school_id', sa.Integer(), nullable=False),
     sa.Column('active', sa.Boolean(), nullable=False),
     sa.Column('left_date', sa.Date(), nullable=True),
     sa.Column('current_term_id', sa.Integer(), nullable=True),
     sa.Column('year', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['current_term_id'], ['term.id'], ),
+    sa.ForeignKeyConstraint(['grade_id'], ['grade.id'], ),
     sa.ForeignKeyConstraint(['school_id'], ['school.school_id'], ),
+    sa.ForeignKeyConstraint(['stream_id'], ['stream.id'], ),
     sa.PrimaryKeyConstraint('student_id'),
     sa.UniqueConstraint('student_id')
     )
@@ -144,10 +162,12 @@ def downgrade():
     op.drop_table('student_additional_fee')
     op.drop_table('fee_payment')
     op.drop_table('student')
+    op.drop_table('stream')
     op.drop_table('fee_structure')
     op.drop_table('audit')
     op.drop_table('user')
     op.drop_table('term')
+    op.drop_table('grade')
     op.drop_table('additional_fee')
     op.drop_table('school')
     op.drop_table('mpesa_transaction')
