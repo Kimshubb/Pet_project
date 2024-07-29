@@ -1,14 +1,14 @@
 
 from flask import render_template, url_for, flash, redirect, request, jsonify, current_app, session
-from jps_erp.forms import Sign_inForm, User_registrationForm, Student_registrationForm, Fee_structureForm, Additional_feeForm, TermForm, Fee_paymentForm, AssociateFeeForm, MigrateTermForm    
+from jps_erp.forms import Sign_inForm, User_registrationForm, Student_registrationForm, Fee_structureForm, ClassForm, Additional_feeForm, TermForm, Fee_paymentForm, AssociateFeeForm, MigrateTermForm    
 from jps_erp import app, db
 from jps_erp.daraja import check_transaction_status
 from flask_login import login_user, current_user, UserMixin, logout_user, login_required
-from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, BankStatement, student_additional_fee 
+from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, BankStatement, student_additional_fee
 import sqlalchemy as sa
 from sqlalchemy import func
 from datetime import datetime
-from jps_erp.utils import calculate_balance, extract_transactions_from_pdf
+from jps_erp.utils import calculate_balance,generate_custom_student_id, extract_transactions_from_pdf, get_current_term, current_year, get_recent_payments, active_students, inactive_students_term, inactive_students_year, paid_via_method_term, paid_via_method_year, paid_via_method_today,FeeStructureNotFoundError
 import os
 from werkzeug.utils import secure_filename
 
@@ -17,7 +17,7 @@ def home():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     else:
-        return redirect(url_for('login'))
+        return render_template ('index.html')
 
 @app.route("/register", methods=['GET', 'POST'], strict_slashes=False)
 def register():
@@ -106,11 +106,53 @@ def login():
 """
 
 @app.route('/dashboard', strict_slashes=False)
+@login_required
 def dashboard():
     user_name = session.get('user_name', 'User')  # Getting user name from session
-    school_name = session.get('school_name', 'Your School') # Getting school name from session
+    school_name = session.get('school_name', 'Your School')  # Getting school name from session
+    current_term = Term.query.filter_by(school_id=current_user.school_id, current=True).first()
+    if not current_term:
+        flash('No current term set. Please set a current term.', 'info')
+        return redirect(url_for('manage_terms'))
 
-    return render_template('dashboard.html', user_name=user_name, school_name=school_name)
+    try:
+        
+        school_id = current_user.school_id
+        term_id = get_current_term(school_id)
+        year = current_year()
+
+        recent_payments_query = get_recent_payments(school_id, limit=10)
+        total_active_students = active_students(school_id, term_id)
+        total_inactive_students_term = inactive_students_term(school_id, term_id)
+        total_inactive_students_year = inactive_students_year(school_id, year)
+
+        #total_paid_via_cash_term = paid_via_method_term(school_id, term_id, 'Cash')
+        #total_paid_via_cash_year = paid_via_method_year(school_id, year, 'Cash')
+
+        #total_paid_via_bank_term = paid_via_method_term(school_id, term_id, 'Bank')
+        #total_paid_via_bank_year = paid_via_method_year(school_id, year, 'Bank')
+
+        #total_paid_via_mpesa_term = paid_via_method_term(school_id, term_id, 'Mpesa')
+        #total_paid_via_mpesa_year = paid_via_method_year(school_id, year, 'Mpesa')
+
+        total_paid_via_cash_today = paid_via_method_today(school_id, 'Cash')
+        total_paid_via_bank_today = paid_via_method_today(school_id, 'Bank')
+        total_paid_via_mpesa_today = paid_via_method_today(school_id, 'Mpesa')
+        total_banked_today = total_paid_via_bank_today + total_paid_via_mpesa_today
+
+        # Logging the fetched payments for debugging
+        print(f"Dashboard Recent Payments: {recent_payments_query}")
+
+        return render_template('dashboard.html', user_name=user_name, school_name=school_name, recent_payments=recent_payments_query, 
+                               total_active_students=total_active_students, total_inactive_students_term=total_inactive_students_term, 
+                               total_inactive_students_year=total_inactive_students_year, total_paid_via_cash_today=total_paid_via_cash_today, 
+                               total_banked_today=total_banked_today
+                               )
+    except Exception as e:
+        print(f"Error fetching recent payments for dashboard: {e}")
+        flash('An error occurred while fetching recent payments.', 'danger')
+        return render_template('dashboard.html', user_name=user_name, school_name=school_name, recent_payments=[])
+
 
 @app.route('/logout', strict_slashes=False)
 def logout():
@@ -156,7 +198,7 @@ def students():
         return render_template('students.html', students=students, form=form, terms=terms, additional_fees=additional_fees, associate_fee_form=associate_fee_form)
     else:
         print("Debugging: No current term set")
-        return redirect(url_for('manage_terms'))    
+        return "No current term set."
 
 
 
@@ -174,7 +216,10 @@ def new_student():
         print("Debugging: Form submitted")
         current_term = Term.query.filter_by(current=True).first()
         current_year = datetime.now().year
+        print("Debugging: Current term found:", current_term)
+        student_id = generate_custom_student_id(current_user.school.name, current_year)
         student = Student(
+            student_id=student_id,
             full_name=form.full_name.data, 
             dob=form.dob.data,
             gender=form.gender.data,
@@ -210,8 +255,7 @@ def new_student():
 
     return render_template('students.html', students=students, form=form, terms=terms)
 
-
-@app.route('/students/<int:student_id>/update', methods=['GET', 'POST'], strict_slashes=False)
+@app.route('/students/<string:student_id>/update', methods=['GET', 'POST'], strict_slashes=False)
 def update_student(student_id):
     student = Student.query.get_or_404(student_id)
     form = Student_registrationForm(obj=student)
@@ -237,7 +281,7 @@ def update_student(student_id):
         form.grade.data = student.grade 
     return render_template('update_student.html', form=form, student=student)
 
-@app.route('/students/<int:student_id>/inactive', methods=['POST'], strict_slashes=False)
+@app.route('/students/<string:student_id>/inactive', methods=['POST'], strict_slashes=False)
 @login_required
 def toggle_student_status(student_id):
     student = Student.query.get_or_404(student_id)
@@ -648,7 +692,7 @@ def manage_additional_fees():
     additional_fees = AdditionalFee.query.filter_by(school_id=school_id).all()
     return render_template('manage_add_fees.html', form=form, additional_fees=additional_fees)
 
-@app.route('/student/<int:student_id>/add_fee', methods=['GET', 'POST'])
+@app.route('/student/<string:student_id>/add_fee', methods=['GET', 'POST'])
 @login_required
 def add_additional_fee(student_id):
     student = Student.query.get_or_404(student_id)
@@ -816,7 +860,11 @@ def student_payments():
 
     for student in students:
         total_paid = db.session.query(func.sum(FeePayment.amount)).filter_by(student_id=student.student_id, term_id=current_term.id).scalar() or 0.0
-        balance, cf_balance = calculate_balance(student.student_id)
+        try:
+            balance, cf_balance = calculate_balance(student.student_id)
+        except FeeStructureNotFoundError as e:
+            flash(str(e), 'warning')
+            return redirect(url_for('manage_fee_structure'))
 
         student_payment_details.append({
             'student': student,
@@ -829,7 +877,7 @@ def student_payments():
 
     return render_template('student_payments.html', student_payment_details=student_payment_details, current_term=current_term, grades=grades, selected_grade=grade_filter)
 
-@app.route('/student/<int:student_id>/receipt/<int:payment_id>', methods=['GET'])
+@app.route('/student/<string:student_id>/receipt/<int:payment_id>', methods=['GET'])
 @login_required
 def print_receipt(student_id, payment_id):
     student = Student.query.get_or_404(student_id)
@@ -848,18 +896,21 @@ def print_receipt(student_id, payment_id):
 
         return render_template('receipt.html', student=student, payment=payment, balance=balance, cf_balance=cf_balance, current_term=current_term, school=school)
     
-@app.route('/dashboard/recent_payments')
+@app.route('/recent_payments', strict_slashes=False)
 @login_required
 def recent_payments():
-    # Query recent payments ordered by payment date descending
-    recent_payments = db.session.query(FeePayment, Student)\
-        .join(Student, FeePayment.student_id == Student.student_id)\
-        .filter(FeePayment.school_id == current_user.school_id)\
-        .order_by(FeePayment.pay_date.desc())\
-        .limit(10)\
-        .all()
+    try:
+        # Fetch all recent payments
+        recent_payments_query = get_recent_payments(current_user.school_id, limit=None)  # No limit to get all payments
 
-    return render_template('dashboard.html', recent_payments=recent_payments)
+        # Logging the fetched payments for debugging
+        print(f"All Recent Payments: {recent_payments_query}")
+
+        return render_template('recent_payments.html', recent_payments=recent_payments_query)
+    except Exception as e:
+        print(f"Error fetching all recent payments: {e}")
+        flash('An error occurred while fetching recent payments.', 'danger')
+        return render_template('recent_payments.html', recent_payments=[])
 
 @app.route('/fee_reports', methods=['GET'])
 @login_required
@@ -1032,3 +1083,63 @@ def verify_transactions():
 
     print("Debug: GET request detected for verification")
     return render_template('verify_transactions.html')
+
+"""
+@app.route('/classes', methods=['GET', 'POST'])
+@login_required
+def manage_classes():
+    form = ClassForm()
+    # Populate the grade choices dynamically from the global Grade model
+    form.grade_id.choices = [(grade.id, grade.name) for grade in Grade.query.all()]
+    
+    if form.validate_on_submit():
+        # Ensure the class name is unique within the selected grade
+        existing_class = Class.query.filter_by(name=form.name.data, grade_id=form.grade_id.data).first()
+        if existing_class:
+            flash('Class with this name already exists in the selected grade.', 'warning')
+        else:
+            new_class = Class(name=form.name.data, grade_id=form.grade_id.data, school_id=current_user.school_id)
+            db.session.add(new_class)
+            db.session.commit()
+            flash('Class has been added!', 'success')
+            return redirect(url_for('manage_classes'))
+    
+    # Fetch grades and their classes for the current user's school
+    grades = Grade.query.all()  # Fetch global grades
+    classes = Class.query.filter_by(school_id=current_user.school_id).all()
+    return render_template('manage_classes.html', title='Manage Classes', grades=grades, classes=classes, form=form)
+
+@app.route('/class/<int:class_id>/update', methods=['GET', 'POST'])
+@login_required
+def update_class(class_id):
+    class_ = Class.query.get_or_404(class_id)
+    form = ClassForm()
+    # Populate the grade choices dynamically from the global Grade model
+    form.grade_id.choices = [(grade.id, grade.name) for grade in Grade.query.all()]
+    
+    if form.validate_on_submit():
+        # Ensure the class name is unique within the selected grade
+        existing_class = Class.query.filter_by(name=form.name.data, grade_id=form.grade_id.data).first()
+        if existing_class and existing_class.id != class_.id:
+            flash('Class with this name already exists in the selected grade.', 'warning')
+        else:
+            class_.name = form.name.data
+            class_.grade_id = form.grade_id.data
+            db.session.commit()
+            flash('Class has been updated!', 'success')
+            return redirect(url_for('manage_classes'))
+        flash('Error updating class. Please try again.', 'danger')
+    
+    form.name.data = class_.name
+    form.grade_id.data = class_.grade_id
+    grades = Grade.query.all()  # Fetch global grades
+    return render_template('manage_classes.html', title='Update Class', grades=grades, form=form)
+
+@app.route('/class/<int:class_id>/delete', methods=['POST'])
+@login_required
+def delete_class(class_id):
+    class_ = Class.query.get_or_404(class_id)
+    db.session.delete(class_)
+    db.session.commit()
+    flash('Class has been deleted!', 'success')
+    return redirect(url_for('manage_classes'))"""

@@ -6,8 +6,8 @@
 }
 
 :root {
-    --primary-color: #1995AD;
-    --secondary-color: #A1D6E2;
+    --primary-color: #116466;
+    --secondary-color: #D1E8E2;
     --success-color: #28a745;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
@@ -15,6 +15,7 @@
     --light-color: #F1F1F2;
     --dark-color: #343a40;
 }
+
 
 body {
     overflow-x: hidden;

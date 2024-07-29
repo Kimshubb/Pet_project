@@ -23,7 +23,7 @@
             <li>
                 <a href="#">
                     <span class="icon">
-                        <img src="{{ url_for('static', filename='images/Kidokona logo.png') }}" alt="School Logo" style="width: 200px; height: 100%;">
+                        <!--<img src="{{ url_for('static', filename='images/logo.png') }}" alt="School Logo" style="width: 200px; height: 100%;">-->
                     </span>
                 </a>
             </li>
@@ -81,7 +81,7 @@
             </li>
             
             <li>
-                <a href="#">
+                <a href="{{ url_for('logout')}}">
                 <span class="icon">
                     <ion-icon name="log-out-sharp"></ion-icon>
                 </span>
@@ -109,8 +109,8 @@
         <div class="cardBox">
             <div class="card">
                 <div>
-                  <div class="numbers">345</div>
-                  <div class="cardname">Students</div>
+                  <div class="numbers">{{ total_active_students }}</div>
+                  <div class="cardname">Active Students</div>
                 </div>
                 <div class="iconBox">
                     <ion-icon name="people"></ion-icon>
@@ -118,8 +118,17 @@
             </div>
             <div class="card">
                 <div>
-                  <div class="numbers">$345</div>
-                  <div class="cardname">Collections</div>
+                  <div class="numbers">{{ total_inactive_students_year }}</div>
+                  <div class="cardname">InActive Students</div>
+                </div>
+                <div class="iconBox">
+                    <ion-icon name="people"></ion-icon>
+                </div>          
+            </div>
+            <div class="card">
+                <div>
+                  <div class="numbers">{{ total_paid_via_cash_today }}</div>
+                  <div class="cardname">Cash Today</div>
                 </div>
                 <div class="iconBox">
                     <ion-icon name="cash"></ion-icon>
@@ -127,11 +136,11 @@
             </div>
             <div class="card">
                 <div>
-                  <div class="numbers">345</div>
-                  <div class="cardname">Staff</div>
+                  <div class="numbers">{{ total_banked_today }}</div>
+                  <div class="cardname">Bank Today</div>
                 </div>
                 <div class="iconBox">
-                    <ion-icon name="people-circle"></ion-icon>
+                    <ion-icon name="wallet-sharp"></ion-icon>
                 </div>          
             </div>
             <div class="card">
@@ -148,33 +157,34 @@
             <div class="recentpayments">
                 <div class="cardheader">
                     <h2>Recent Payments</h2>
-                    <a href="#$" class="btn">View All</a>
+                    <a href="{{ url_for('recent_payments')}}" class="btn">View All</a>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <td>Date</td>
                             <td>Student</td>
                             <td>Grade</td>
                             <td>Amount</td>
                             <td>Method</td>
                             <td>Code</td>
+                            <td>Status</td>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for payment, student in recent_payments %}
+                        {% for payment in recent_payments %}
+                        
                         <tr>
-                            <td>{{ payment.pay_date.strftime('%Y-%m-%d') }}</td>
-                            <td>{{ student.full_name }}</td>
-                            <td>{{ student.grade }}</td>
-                            <td>{{ payment.amount }}</td>
-                            <td>{{ payment.method }}</td>
-                            <td>{{ payment.code if payment.method in ['Mpesa', 'Bank'] else 'N/A' }}</td>
+                            <td>{{ payment[0] }}</td>
+                            <td>{{ payment[1] }}</td>
+                            <td>{{ payment[2] }}</td>
+                            <td>{{ payment[3] }}</td>
+                            <td>{{ payment[4] if payment[3] in ['Mpesa', 'Bank'] else 'N/A' }}</td>
+                            <td>{{ 'Verified' if payment[5] else 'Pending' }}</td>
                         </tr>
-                    {% endfor %}
+                        
+                        {% endfor %}
                     </tbody>
                 </table>
-
             </div>
 
         </div>
@@ -194,4 +204,3 @@
 </body>
 
 </html>
-

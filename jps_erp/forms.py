@@ -36,8 +36,8 @@ class Student_registrationForm(FlaskForm):
     contact_number1 = StringField('contact_number1', validators=[DataRequired()])
     contact_number2 = StringField('contact_number2', validators=[DataRequired()])
     grade = SelectField('Grade', choices=[('Playgroup', 'Playgroup'), ('PP1', 'PP1'), ('PP2', 'PP2'),
-                                          ('1', 'Grade 1'), ('2', 'Grade 2'), ('3', 'Grade 3'),
-                                          ('4', 'Grade 4'), ('5', 'Grade 5'), ('6', 'Grade 6')], validators=[DataRequired()])
+                                          ('Grade 1', 'Grade 1'), ('Grade 2', 'Grade 2'), ('Grade 3', 'Grade 3'),
+                                          ('Grade 4', 'Grade 4'), ('Grade 5', 'Grade 5'), ('Grade 6', 'Grade 6')], validators=[DataRequired()])
     submit = SubmitField('Add Student')
 
     #def validate_phone_number(self, contact_number1):
@@ -54,7 +54,7 @@ class TermForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class Fee_paymentForm(FlaskForm):
-    student_id = IntegerField('Student ID', validators=[DataRequired()])
+    student_id = StringField('Student ID', validators=[DataRequired()])
     student_name = StringField('Student Name', validators=[DataRequired()])
     method = SelectField('Method', choices=[('Cash', 'Cash'), ('Bank', 'Bank'), ('Mpesa', 'Mpesa')], validators=[DataRequired()])
     amount = FloatField('Amount', validators=[DataRequired()])
@@ -68,8 +68,8 @@ class Fee_paymentForm(FlaskForm):
 
 class Fee_structureForm(FlaskForm):
     grade = SelectField('Grade', choices=[('Playgroup', 'Playgroup'), ('PP1', 'PP1'), ('PP2', 'PP2'),
-                                          ('1', 'Grade 1'), ('2', 'Grade 2'), ('3', 'Grade 3'),
-                                          ('4', 'Grade 4'), ('5', 'Grade 5'), ('6', 'Grade 6')], validators=[DataRequired()])
+                                          ('Grade 1', 'Grade 1'), ('Grade 2', 'Grade 2'), ('Grade 3', 'Grade 3'),
+                                          ('Grade 4', 'Grade 4'), ('Grade 5', 'Grade 5'), ('Grade 6', 'Grade 6')], validators=[DataRequired()])
     term_id = SelectField('Term', coerce=int, validators=[DataRequired()])
     tuition_fee = FloatField('Tuition Fee', validators=[DataRequired()])
     ass_books = FloatField('Assessment Books', validators=[DataRequired()])
@@ -97,3 +97,8 @@ class MigrateTermForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super(MigrateTermForm, self).__init__(*args, **kwargs)
         self.term_id.choices = [(term.id, f"{term.name} - {term.year}") for term in Term.query.all()]
+
+class ClassForm(FlaskForm):
+    name = StringField('Class Name', validators=[DataRequired()])
+    grade_id = SelectField('Grade', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Submit')

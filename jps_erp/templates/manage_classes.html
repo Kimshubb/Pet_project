@@ -1,0 +1,85 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Manage Classes</h1>
+    
+    <!-- Add Class Form -->
+    <form method="POST" action="{{ url_for('manage_classes') }}" class="mb-4">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.name.label(class="form-label") }} 
+            {{ form.name(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.grade_id.label(class="form-label") }} 
+            {{ form.grade_id(class="form-select") }}
+        </div>
+        <div class="mb-3">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+
+    <!-- Existing Classes -->
+    <h2>Existing Classes</h2>
+    {% for grade in grades %}
+        <h3>{{ grade.name }}</h3>
+        <ul class="list-group mb-4">
+            {% for class_ in grade.classes %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ class_.name }}
+                    <div>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#updateClassModal" data-class-id="{{ class_.id }}" data-class-name="{{ class_.name }}" data-grade-id="{{ grade.id }}">Edit</button>
+                        <form action="{{ url_for('delete_class', class_id=class_.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+
+    <!-- Update Class Modal -->
+    <div class="modal fade" id="updateClassModal" tabindex="-1" aria-labelledby="updateClassModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateClassModalLabel">Update Class</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="" id="updateClassForm">
+                    {{ form.hidden_tag() }}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }} 
+                            {{ form.name(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.grade_id.label(class="form-label") }} 
+                            {{ form.grade_id(class="form-select") }}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+   
+<script>
+    $('#updateClassModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget)
+        var classId = button.data('class-id')
+        var className = button.data('class-name')
+        var gradeId = button.data('grade-id')
+
+        var modal = $(this)
+        modal.find('.modal-body #form_name').val(className)
+        modal.find('.modal-body #form_grade_id').val(gradeId)
+        modal.find('#updateClassForm').attr('action', '/class/' + classId + '/update')
+    })
+</script>
+    
+{% endblock %}    

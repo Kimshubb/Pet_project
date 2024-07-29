@@ -5,6 +5,10 @@ from flask_login import current_user
 import pdfplumber
 import re
 import spacy
+from datetime import date
+
+class FeeStructureNotFoundError(Exception):
+    pass
 
 def calculate_balance(student_id):
     # Fetch the student record
@@ -27,7 +31,7 @@ def calculate_balance(student_id):
     if not fee_structure:
         print(f"Grade: {student.grade}, School ID: {student.school_id}, Term name: {current_term.name}, Term year: {current_term.year}")
 
-        raise ValueError("Fee structure not found for the student's grade and school in the current term")
+        raise FeeStructureNotFoundError("Fee structure not found for the student's grade and school in the current term")
     
     # Calculate the total standard fees for the grade
     total_standard_fees = (
@@ -109,3 +113,96 @@ def extract_transactions_from_pdf(pdf_path):
                             print(f"Debug: Extracted Bank transaction - Code: {bank_code}, Amount: {amount}")
 
     return transactions
+
+def generate_custom_student_id(school_name, school_id):
+    school_abbr = ''.join([word[0] for word in school_name.split()]).upper()
+    student_count = Student.query.filter_by(school_id=school_id).count() + 1
+    student_id = f"{school_abbr}{student_count:03d}"
+
+    # Ensure the custom student ID is unique
+    while Student.query.filter_by(student_id=student_id).first():
+        student_count += 1
+        student_id = f"{school_abbr}{student_count:03d}"
+
+    return student_id
+
+
+def process_mpesa_transaction(code, amount):
+    mpesa_transaction = MpesaTransaction.query.filter_by(code=code).first()
+    
+    if mpesa_transaction:
+        if mpesa_transaction.verified:
+            print('Mpesa transaction code has already been used.', 'danger')
+            return False
+        else:
+            # If the code exists but is not verified, update the transaction details
+            mpesa_transaction.amount = amount
+    else:
+        # If the code does not exist, create a new transaction entry
+        mpesa_transaction = MpesaTransaction(code=code, amount=amount, verified=False)
+    
+    db.session.add(mpesa_transaction)
+    db.session.commit()
+
+    return True
+
+def get_recent_payments(school_id, limit=None):
+    query = db.session.query(
+            Student.full_name,
+            Student.grade,
+            FeePayment.amount,
+            FeePayment.method,
+            FeePayment.code,
+            MpesaTransaction.verified
+        )\
+        .join(Student, FeePayment.student_id == Student.student_id)\
+        .outerjoin(MpesaTransaction, FeePayment.code == MpesaTransaction.code)\
+        .filter(FeePayment.school_id == school_id)\
+        .order_by(FeePayment.pay_date.desc())
+
+    if limit:
+        query = query.limit(limit)
+
+    return query.all()
+
+def active_students(school_id, term_id):
+    return db.session.query(func.count(Student.student_id))\
+        .filter(Student.school_id == school_id, Student.current_term_id == term_id, Student.active == True)\
+        .scalar()
+
+def inactive_students_term(school_id, term_id):
+    return db.session.query(func.count(Student.student_id))\
+        .filter(Student.school_id == school_id, Student.current_term_id == term_id, Student.active == False)\
+        .scalar()
+
+def inactive_students_year(school_id, year):
+    return db.session.query(func.count(Student.student_id))\
+        .join(Term, Student.current_term_id == Term.id)\
+        .filter(Student.school_id == school_id, Term.year == year, Student.active == False)\
+        .scalar()
+
+def paid_via_method_term(school_id, term_id, method):
+    return db.session.query(func.sum(FeePayment.amount))\
+        .filter(FeePayment.school_id == school_id, FeePayment.term_id == term_id, FeePayment.method == method)\
+        .scalar() or 0.0
+
+def paid_via_method_year(school_id, year, method):
+    return db.session.query(func.sum(FeePayment.amount))\
+        .join(Term, FeePayment.term_id == Term.id)\
+        .filter(FeePayment.school_id == school_id, Term.year == year, FeePayment.method == method)\
+        .scalar() or 0.0
+
+def get_current_term(school_id):
+    return db.session.query(Term.id).filter(Term.current == True, Term.school_id == school_id).scalar()
+
+def current_year():
+    return date.today().year
+
+def current_date():
+    return date.today()
+
+def paid_via_method_today(school_id, method):
+    today = current_date()
+    return db.session.query(func.sum(FeePayment.amount))\
+        .filter(FeePayment.school_id == school_id, FeePayment.method == method, func.date(FeePayment.pay_date) == today)\
+        .scalar() or 0.0
