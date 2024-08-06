@@ -1,0 +1,68 @@
+{% extends "dashboard.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Add New Student</h2>
+    <form method="POST" action="{{ url_for('add_student') }}">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            <label for="full_name" class="form-label">{{ form.full_name.label }}</label>
+            {{ form.full_name(class="form-control", id="full_name") }}
+        </div>
+        <div class="mb-3">
+            <label for="dob" class="form-label">{{ form.dob.label }}</label>
+            {{ form.dob(class="form-control", id="dob") }}
+        </div>
+        <div class="mb-3">
+            <label for="gender" class="form-label">{{ form.gender.label }}</label>
+            {{ form.gender(class="form-select", id="gender") }}
+        </div>
+        <div class="mb-3">
+            <label for="guardian_name" class="form-label">{{ form.guardian_name.label }}</label>
+            {{ form.guardian_name(class="form-control", id="guardian_name") }}
+        </div>
+        <div class="mb-3">
+            <label for="contact_number1" class="form-label">{{ form.contact_number1.label }}</label>
+            {{ form.contact_number1(class="form-control", id="contact_number1") }}
+        </div>
+        <div class="mb-3">
+            <label for="contact_number2" class="form-label">{{ form.contact_number2.label }}</label>
+            {{ form.contact_number2(class="form-control", id="contact_number2") }}
+        </div>
+        <div class="mb-3">
+            <label for="grade" class="form-label">{{ form.grade.label }}</label>
+            {{ form.grade(class="form-select", id="grade") }}
+        </div>
+        <div class="mb-3">
+            <label for="stream" class="form-label">{{ form.stream.label }}</label>
+            {{ form.stream(class="form-select", id="stream") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const gradeSelect = document.querySelector('#grade');
+        const streamSelect = document.querySelector('#stream');
+    
+        gradeSelect.addEventListener('change', function() {
+            const selectedGradeId = this.value;
+    
+            // Fetch streams based on selected grade
+            fetch(`/get_streams/${selectedGradeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    streamSelect.innerHTML = ''; // Clear existing options
+                    data.streams.forEach(stream => {
+                        const option = document.createElement('option');
+                        option.value = stream.id;
+                        option.text = stream.name;
+                        streamSelect.add(option);
+                    });
+                });
+        });
+    });
+</script>
+
+{% endblock %}

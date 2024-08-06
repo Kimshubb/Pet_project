@@ -35,7 +35,10 @@ class Student_registrationForm(FlaskForm):
     guardian_name = StringField('Guardian Name', validators=[DataRequired()])
     contact_number1 = StringField('Contact Number 1', validators=[DataRequired()])
     contact_number2 = StringField('Contact Number 2', validators=[DataRequired()])
-    grade = SelectField('Grade', choices=[], validators=[DataRequired()])
+    grade = SelectField('Grade', choices=[('Playgroup', 'Playgroup'), ('PP1', 'PP1'), ('PP2', 'PP2'),
+                                          ('Grade 1', 'Grade 1'), ('Grade 2', 'Grade 2'), ('Grade 3', 'Grade 3'),
+                                          ('Grade 4', 'Grade 4'), ('Grade 5', 'Grade 5'), ('Grade 6', 'Grade 6'), 
+                                          ('Grade 7', 'Grade 7'), ('Grade 8', 'Grade 8')], validators=[DataRequired()])
     stream = SelectField('Stream', choices=[], validators=[DataRequired()])
     submit = SubmitField('Add Student')
 
@@ -68,7 +71,8 @@ class Fee_paymentForm(FlaskForm):
 class Fee_structureForm(FlaskForm):
     grade = SelectField('Grade', choices=[('Playgroup', 'Playgroup'), ('PP1', 'PP1'), ('PP2', 'PP2'),
                                           ('Grade 1', 'Grade 1'), ('Grade 2', 'Grade 2'), ('Grade 3', 'Grade 3'),
-                                          ('Grade 4', 'Grade 4'), ('Grade 5', 'Grade 5'), ('Grade 6', 'Grade 6')], validators=[DataRequired()])
+                                          ('Grade 4', 'Grade 4'), ('Grade 5', 'Grade 5'), ('Grade 6', 'Grade 6'), 
+                                          ('Grade 7', 'Grade 7'), ('Grade 8', 'Grade 8')], validators=[DataRequired()])
     term_id = SelectField('Term', coerce=int, validators=[DataRequired()])
     tuition_fee = FloatField('Tuition Fee', validators=[DataRequired()])
     ass_books = FloatField('Assessment Books', validators=[DataRequired()])

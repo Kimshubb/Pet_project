@@ -19,16 +19,10 @@
     <form method="GET" action="{{ url_for('manage_fee_structure') }}">
         <label for="grade">Select Grade</label>
         <select name="grade" id="grade">
-            <option value="all">All</option>
-            <option value="Playgroup">Playgroup</option>
-            <option value="PP1">PP1</option>
-            <option value="PP2">PP2</option>
-            <option value="1">Grade 1</option>
-            <option value="2">Grade 2</option>
-            <option value="3">Grade 3</option>
-            <option value="4">Grade 4</option>
-            <option value="5">Grade 5</option>
-            <option value="6">Grade 6</option>
+            <option value="all">All Grades</option>
+            {% for grade in grades %}
+                <option value="{{ grade.id }}" {% if request.args.get('grade') == str(grade.id) %}selected{% endif %}>{{ grade.name }}</option>
+            {% endfor %}
         </select>
         <label for="term">Select Term</label>
         <select name="term" id="term">
@@ -58,7 +52,7 @@
             {% for fee in fee_structures %}
             <tr>
                 <td>{{ fee.id }}</td>
-                <td>{{ fee.grade }}</td>
+                <td>{{ fee.grade.name }}</td>
                 <td>{{ fee.term.name }} {{ fee.term.year }}</td>
                 <td>{{ fee.tuition_fee }}</td>
                 <td>{{ fee.ass_books }}</td>

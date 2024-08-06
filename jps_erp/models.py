@@ -92,7 +92,7 @@ class AdditionalFee(db.Model):
 class Student(db.Model):
     student_id = sa.Column(sa.String(10), primary_key=True, unique=True, nullable=False)
     full_name = sa.Column(sa.String(100), nullable=False)
-    dob = sa.Column(sa.String(10), nullable=False)
+    dob = sa.Column(sa.Date, nullable=False)
     gender = sa.Column(sa.String(10), nullable=False)
     guardian_name = sa.Column(sa.String(100), nullable=False)
     contact_number1 = sa.Column(sa.String(20), nullable=False)

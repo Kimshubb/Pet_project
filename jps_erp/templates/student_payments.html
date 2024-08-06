@@ -11,13 +11,22 @@
     <h1>Student Payments</h1>
     <a href="{{ url_for('new_payment') }}" class="btn btn-success float-left">Add New Payment</a>
     <form method="GET" action="{{ url_for('student_payments') }}">
-        <label for="grade">Select Grade:</label>
-        <select name="grade" id="grade"  onchange="this.form.submit()">
-            <option value="all" {% if selected_grade == 'all' %}selected{% endif %}>All Grades</option>
+        <label for="grade">Select Grade</label>
+        <select name="grade" id="grade">
+            <option value="all">All Grades</option>
             {% for grade in grades %}
-                <option value="{{ grade[0] }}" {% if selected_grade == grade[0] %}selected{% endif %}>{{ grade[0] }}</option>
+                <option value="{{ grade.id }}" {% if request.args.get('grade') == str(grade.id) %}selected{% endif %}>{{ grade.name }}</option>
             {% endfor %}
         </select>
+    
+        <label for="stream">Select Stream</label>
+        <select name="stream" id="stream">
+            <option value="all">All Streams</option>
+            {% for stream in streams %}
+                <option value="{{ stream.id }}" {% if request.args.get('stream') == str(stream.id) %}selected{% endif %}>{{ stream.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
     </form>
     <table class="table table-striped mt-3">
         <thead>
@@ -36,7 +45,7 @@
             <tr>
                 <td>{{ details.student.student_id }}</td>
                 <td>{{ details.student.full_name }}</td>
-                <td>{{ details.student.grade }}</td>
+                <td>{{ details.student.grade.name }}</td>
                 <td>{{ details.cf_balance }}</td>
                 <td>{{ details.total_paid }}</td>
                 <td>{{ details.balance }}</td>
