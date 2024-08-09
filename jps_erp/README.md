@@ -43,3 +43,6 @@ This project is licensed under the [MIT License](LICENSE).git
 
 - Kimani Francis S: (mailto:issakimanifmk@gmail.com)
 - Project Link: [KidoKona](https://github.com/Kimshubb/Pet_project/JPS_ERP_V1)
+
+## To dos
+Use blueprints
