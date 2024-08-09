@@ -8,7 +8,7 @@ from jps_erp.models import User, Student, School, Grade, Stream, FeePayment, Fee
 import sqlalchemy as sa
 from sqlalchemy import func
 from datetime import datetime
-from jps_erp.utils import calculate_balance,generate_custom_student_id, extract_transactions_from_pdf, get_current_term, current_year, get_recent_payments, active_students, inactive_students_term, inactive_students_year, paid_via_method_term, paid_via_method_year, paid_via_method_today,FeeStructureNotFoundError
+from jps_erp.utils import calculate_balance,generate_custom_student_id, extract_transactions_from_pdf, current_year, get_recent_payments, get_current_term, active_students, inactive_students_term, inactive_students_year, paid_via_method_term, paid_via_method_year, paid_via_method_today,FeeStructureNotFoundError
 import os
 from werkzeug.utils import secure_filename
 
@@ -118,7 +118,7 @@ def dashboard():
     try:
         
         school_id = current_user.school_id
-        term_id = get_current_term(school_id)
+        term_id = current_term.id
         year = current_year()
 
         recent_payments_query = get_recent_payments(school_id, limit=10)
@@ -207,6 +207,7 @@ def utility_processor():
 @app.route('/students', methods=['GET'])
 @login_required
 def students():
+    page = request.args.get('page', 1, type=int)
     # Filters
     grade_filter = request.args.get('grade', 'all')
     term_filter = request.args.get('term', 'all')
@@ -223,8 +224,10 @@ def students():
     if stream_filter != 'all':
         query = query.filter_by(stream_id=stream_filter)
 
-    # Retrieve students, terms, and grades for the filters
-    students = query.all()
+    # Retrieve students, terms, and grades for the filters and pagination of results
+    per_page = 15
+    students = query.paginate(page=page, per_page=per_page)
+
     grades = Grade.query.filter_by(school_id=current_user.school_id).all()
     terms = Term.query.filter_by(school_id=current_user.school_id).all()
     
@@ -499,8 +502,9 @@ def manage_fee_structure():
             fee_structure.others = others
         else:
             # Create new fee structure
+            current_term = Term.query.filter_by(current=True, school_id=current_user.school_id).first()
             print("Debug: Creating new fee structure")
-            existing_fee_structure = FeeStructure.query.filter_by(grade_id=grade_id, term_id=term_id, school_id=current_user.school_id).first()
+            existing_fee_structure = FeeStructure.query.filter_by(grade_id=grade_id, term_id=current_term.id, school_id=current_user.school_id).first()
             if existing_fee_structure:
                 print("Debug: Fee structure for this grade and term already exists.")
                 flash('Fee structure for this grade and term already exists.', 'danger')
@@ -719,11 +723,35 @@ def print_receipt(student_id, payment_id):
     
     return render_template('receipt.html', student=student, payment=payment, balance=balance, cf_balance=cf_balance, current_term=current_term, school=school)
 """
+@app.route('/search_student')
+@login_required
+def search_student():
+    query = request.args.get('q', '')
+    if query:
+        students = Student.query.filter(Student.full_name.ilike(f'%{query}%'), Student.school_id == current_user.school_id).all()
+        suggestions = []
+        for student in students:
+            # Assuming there is a method or attribute to get the current term for the student
+            current_term = (
+                db.session.query(Term)
+                .join(Student, Student.current_term_id == Term.id)
+                .filter(Student.student_id == student.student_id, Term.current == True)
+                .first()
+            )
+            term_id = current_term.id if current_term else None
+            suggestions.append({'id': student.student_id, 'name': student.full_name, 'term_id': term_id})
+        return jsonify(suggestions)
+    return jsonify([])
+
 @app.route('/student_payments', methods=['GET'])
 @login_required
 def student_payments():
     grade_filter = request.args.get('grade', 'all')
     stream_filter = request.args.get('stream', 'all')
+    #paginate
+    page = request.args.get('page', 1, type=int)
+    per_page = 15
+
     current_term = Term.query.filter_by(current=True, school_id=current_user.school_id).first()
 
     query = Student.query.filter_by(school_id=current_user.school_id, active=True)
@@ -734,11 +762,11 @@ def student_payments():
     if stream_filter != 'all':
         query = query.filter_by(stream_id=stream_filter)
     
-    students = query.all()
+    students_paginated = query.paginate(page=page, per_page=per_page)
 
     student_payment_details = []
 
-    for student in students:
+    for student in students_paginated.items:
         total_paid = db.session.query(func.sum(FeePayment.amount)).filter_by(student_id=student.student_id, term_id=current_term.id).scalar() or 0.0
         try:
             balance, cf_balance = calculate_balance(student.student_id)
@@ -755,14 +783,14 @@ def student_payments():
 
     grades = Grade.query.filter_by(school_id=current_user.school_id).all()
     streams = Stream.query.filter(Stream.grade_id.in_([grade.id for grade in grades])).all()
-    
 
     return render_template('student_payments.html', 
                            student_payment_details=student_payment_details, 
                            current_term=current_term, 
                            grades=grades, 
                            streams=streams, 
-                           selected_grade=grade_filter, 
+                           selected_grade=grade_filter,
+                           students_paginated=students_paginated, 
                            selected_stream=stream_filter)
 
 @app.route('/student/<string:student_id>/receipt/<int:payment_id>', methods=['GET'])
@@ -809,11 +837,10 @@ def fee_reports():
     grade_details = []
 
     for grade in grades:
-        grade_name = grade[0]
         
         # Query expected fees for the grade
         fee_structure = FeeStructure.query.filter_by(
-            grade=grade_name,
+            grade_id=grade.id,
             term_id=current_term.id,
             school_id=current_user.school_id
         ).first()
@@ -822,7 +849,7 @@ def fee_reports():
             continue  # Skip if fee structure not found
 
         # Query number of students in the grade
-        total_students = db.session.query(func.count(Student.student_id)).filter_by(grade=grade_name, school_id=current_user.school_id).scalar()
+        total_students = db.session.query(func.count(Student.student_id)).filter_by(grade_id=grade.id, school_id=current_user.school_id).scalar() or 0
 
         # Calculate total expected fees
         expected_fees = (
@@ -836,28 +863,35 @@ def fee_reports():
         # Query total additional fees and number of occurrences for the grade
         additional_fees_query = db.session.query(
             AdditionalFee.fee_name,
-            func.count(AdditionalFee.id)
-        ).join(Student.additional_fees).filter(Student.grade == grade_name).group_by(AdditionalFee.fee_name).all()
+            func.count(AdditionalFee.id),
+            func.sum(AdditionalFee.amount)
+        ).join(Student.additional_fees).filter(
+            Student.grade_id == grade.id, 
+            Student.school_id == current_user.school_id
+            ).group_by(AdditionalFee.fee_name).all()
 
         # Calculate total additional fees and number of occurrences
-        total_additional_fees = 0.0
-        additional_fee_counts = {}
-        
-        for fee_name, count in additional_fees_query:
-            total_additional_fees += count * AdditionalFee.query.filter_by(fee_name=fee_name).first().amount
-            additional_fee_counts[fee_name] = count
+        total_additional_fees = sum(fee_amount for _, _, fee_amount in additional_fees_query)
+        additional_fee_counts = {
+            fee_name: count for fee_name, count, _ in additional_fees_query
+        }
 
-        # Query total fees paid for the grade
-        total_fees_paid = db.session.query(func.sum(FeePayment.amount)).\
-            join(Student.fee_payments).\
-            filter(Student.grade == grade_name, FeePayment.term_id == current_term.id).scalar() or 0.0
+        # Query total fees paid for the grade //query specific to school. 
+        #to do: adjust grade ids to be unique to schools
+        total_fees_paid = db.session.query(func.sum(FeePayment.amount)).join(
+            Student, FeePayment.student_id == Student.student_id
+        ).filter(
+            Student.grade_id == grade.id,
+            Student.school_id == current_user.school_id,
+            FeePayment.term_id == current_term.id
+        ).scalar() or 0.0
 
 
         # Calculate total balance
         total_balance = expected_fees + total_additional_fees - total_fees_paid
 
         grade_details.append({
-            'grade_name': grade_name,
+            'grade_name': grade.name,
             'expected_fees': expected_fees,
             'total_additional_fees': total_additional_fees,
             'additional_fee_counts': additional_fee_counts,

@@ -1,6 +1,6 @@
 from sqlalchemy import func
 from jps_erp import app, db
-from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, student_additional_fee
+from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, student_additional_fee, Grade
 from flask_login import current_user
 import pdfplumber
 import re
@@ -146,16 +146,20 @@ def process_mpesa_transaction(code, amount):
 
     return True
 
+def get_current_term(school_id):
+    return Term.query.filter_by(school_id=school_id, current=True).first()
+
 def get_recent_payments(school_id, limit=None):
     query = db.session.query(
             Student.full_name,
-            Student.grade,
+            Grade.name,
             FeePayment.amount,
             FeePayment.method,
             FeePayment.code,
             MpesaTransaction.verified
         )\
-        .join(Student, FeePayment.student_id == Student.student_id)\
+        .join(FeePayment.student)\
+        .join(Grade, Student.grade_id == Grade.id)\
         .outerjoin(MpesaTransaction, FeePayment.code == MpesaTransaction.code)\
         .filter(FeePayment.school_id == school_id)\
         .order_by(FeePayment.pay_date.desc())
@@ -192,8 +196,6 @@ def paid_via_method_year(school_id, year, method):
         .filter(FeePayment.school_id == school_id, Term.year == year, FeePayment.method == method)\
         .scalar() or 0.0
 
-def get_current_term(school_id):
-    return db.session.query(Term.id).filter(Term.current == True, Term.school_id == school_id).scalar()
 
 def current_year():
     return date.today().year
