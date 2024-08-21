@@ -1,0 +1,37 @@
+{% extends "main/dashboard.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Manage Additional Fees</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('settings.manage_additional_fees') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="fee_name">{{ form.fee_name.label }}</label>
+            {{ form.fee_name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            <label for="amount">{{ form.amount.label }}</label>
+            {{ form.amount(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+    </form>
+    <hr>
+    <h3>Existing Additional Fees</h3>
+    <ul class="list-group">
+        {% for fee in additional_fees %}
+        <li class="list-group-item">
+            {{ fee.fee_name }}: {{ fee.amount }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+2024-08-20 15:40:55,744 DEBUG Logging setup complete.
+2024-08-20 15:40:57,866 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-08-20 15:40:57,866 INFO [33mPress CTRL+C to quit[0m
+2024-08-20 15:40:57,868 INFO  * Restarting with stat
+2024-08-20 15:40:58,717 DEBUG Logging setup complete.
+2024-08-20 15:41:00,782 WARNING  * Debugger is active!
+2024-08-20 15:41:00,788 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:41:00,885 INFO 127.0.0.1 - - [20/Aug/2024 15:41:00] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:41:00,978 INFO 127.0.0.1 - - [20/Aug/2024 15:41:00] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:41:00,978 INFO 127.0.0.1 - - [20/Aug/2024 15:41:00] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:41:00,995 INFO 127.0.0.1 - - [20/Aug/2024 15:41:00] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:01,010 INFO 127.0.0.1 - - [20/Aug/2024 15:41:01] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,143 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:41:23,161 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,164 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,179 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,194 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,690 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:41:23,707 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,708 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,716 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,728 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,922 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:41:23,940 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,943 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,956 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:23,966 INFO 127.0.0.1 - - [20/Aug/2024 15:41:23] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:24,196 INFO 127.0.0.1 - - [20/Aug/2024 15:41:24] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:41:24,211 INFO 127.0.0.1 - - [20/Aug/2024 15:41:24] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:41:24,219 INFO 127.0.0.1 - - [20/Aug/2024 15:41:24] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:41:24,232 INFO 127.0.0.1 - - [20/Aug/2024 15:41:24] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:41:24,243 INFO 127.0.0.1 - - [20/Aug/2024 15:41:24] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:42:33,475 INFO  * Detected change in 'C:\\Users\\Hp\\JPS_ERP_V1\\jps_erp\\auth\\routes.py', reloading
+2024-08-20 15:42:33,833 INFO  * Restarting with stat
+2024-08-20 15:42:35,076 DEBUG Logging setup complete.
+2024-08-20 15:42:37,926 WARNING  * Debugger is active!
+2024-08-20 15:42:37,932 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:43:00,569 INFO  * Detected change in 'C:\\Users\\Hp\\JPS_ERP_V1\\jps_erp\\auth\\routes.py', reloading
+2024-08-20 15:43:01,025 INFO  * Restarting with stat
+2024-08-20 15:43:02,456 DEBUG Logging setup complete.
+2024-08-20 15:43:31,915 DEBUG Logging setup complete.
+2024-08-20 15:44:15,876 DEBUG Logging setup complete.
+2024-08-20 15:44:18,014 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-08-20 15:44:18,014 INFO [33mPress CTRL+C to quit[0m
+2024-08-20 15:44:18,017 INFO  * Restarting with stat
+2024-08-20 15:44:18,884 DEBUG Logging setup complete.
+2024-08-20 15:44:21,034 WARNING  * Debugger is active!
+2024-08-20 15:44:21,039 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:44:21,145 INFO 127.0.0.1 - - [20/Aug/2024 15:44:21] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:44:21,238 INFO 127.0.0.1 - - [20/Aug/2024 15:44:21] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:44:21,244 INFO 127.0.0.1 - - [20/Aug/2024 15:44:21] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:44:21,356 INFO 127.0.0.1 - - [20/Aug/2024 15:44:21] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:44:21,383 INFO 127.0.0.1 - - [20/Aug/2024 15:44:21] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:44:33,098 INFO 127.0.0.1 - - [20/Aug/2024 15:44:33] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:44:33,110 INFO 127.0.0.1 - - [20/Aug/2024 15:44:33] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:44:33,116 INFO 127.0.0.1 - - [20/Aug/2024 15:44:33] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:44:33,131 INFO 127.0.0.1 - - [20/Aug/2024 15:44:33] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:44:33,144 INFO 127.0.0.1 - - [20/Aug/2024 15:44:33] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:44:51,517 INFO  * Detected change in 'C:\\Users\\Hp\\JPS_ERP_V1\\jps_erp\\auth\\routes.py', reloading
+2024-08-20 15:44:51,848 INFO  * Restarting with stat
+2024-08-20 15:44:52,832 DEBUG Logging setup complete.
+2024-08-20 15:44:55,206 WARNING  * Debugger is active!
+2024-08-20 15:44:55,212 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:45:13,719 INFO  * Detected change in 'C:\\Users\\Hp\\JPS_ERP_V1\\jps_erp\\auth\\routes.py', reloading
+2024-08-20 15:45:14,026 INFO  * Restarting with stat
+2024-08-20 15:45:14,993 DEBUG Logging setup complete.
+2024-08-20 15:45:17,154 WARNING  * Debugger is active!
+2024-08-20 15:45:17,159 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:46:22,529 INFO 127.0.0.1 - - [20/Aug/2024 15:46:22] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:46:22,629 INFO 127.0.0.1 - - [20/Aug/2024 15:46:22] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:46:22,631 INFO 127.0.0.1 - - [20/Aug/2024 15:46:22] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:46:22,644 INFO 127.0.0.1 - - [20/Aug/2024 15:46:22] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:46:22,657 INFO 127.0.0.1 - - [20/Aug/2024 15:46:22] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:46:37,277 DEBUG Logging setup complete.
+2024-08-20 15:46:39,380 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-08-20 15:46:39,381 INFO [33mPress CTRL+C to quit[0m
+2024-08-20 15:46:39,383 INFO  * Restarting with stat
+2024-08-20 15:46:40,217 DEBUG Logging setup complete.
+2024-08-20 15:46:42,344 WARNING  * Debugger is active!
+2024-08-20 15:46:42,349 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:46:42,443 INFO 127.0.0.1 - - [20/Aug/2024 15:46:42] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:46:42,533 INFO 127.0.0.1 - - [20/Aug/2024 15:46:42] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:46:42,534 INFO 127.0.0.1 - - [20/Aug/2024 15:46:42] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:46:42,550 INFO 127.0.0.1 - - [20/Aug/2024 15:46:42] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:46:42,564 INFO 127.0.0.1 - - [20/Aug/2024 15:46:42] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:47:21,440 INFO  * Detected change in 'C:\\Users\\Hp\\JPS_ERP_V1\\jps_erp\\auth\\routes.py', reloading
+2024-08-20 15:47:21,744 INFO  * Restarting with stat
+2024-08-20 15:47:22,677 DEBUG Logging setup complete.
+2024-08-20 15:47:25,047 WARNING  * Debugger is active!
+2024-08-20 15:47:25,052 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:47:39,955 INFO 127.0.0.1 - - [20/Aug/2024 15:47:39] "[35m[1mGET /settings HTTP/1.1[0m" 500 -
+2024-08-20 15:47:40,046 INFO 127.0.0.1 - - [20/Aug/2024 15:47:40] "[36mGET /settings?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:47:40,049 INFO 127.0.0.1 - - [20/Aug/2024 15:47:40] "[36mGET /settings?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2024-08-20 15:47:40,062 INFO 127.0.0.1 - - [20/Aug/2024 15:47:40] "[36mGET /settings?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -

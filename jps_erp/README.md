@@ -33,7 +33,7 @@ NB: Hoping to integrate more features and update this asap
 ## Contributing
 
 Guidelines on how others can contribute to your project.
-Open to contributions 
+Open to contributions. If you are interested in contributing to the project, please create a fork of the repository and submit a pull request. All contributions are welcome and appreciated.
 
 ## License
 
@@ -46,3 +46,5 @@ This project is licensed under the [MIT License](LICENSE).git
 
 ## To dos
 Use blueprints
+--Integrate exams processing
+--and more

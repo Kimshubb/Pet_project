@@ -1,4 +1,4 @@
-
+"""
 from flask import render_template, url_for, flash, redirect, request, jsonify, current_app, session
 from jps_erp.forms import Sign_inForm, User_registrationForm, Student_registrationForm, Fee_structureForm, GradeConfigurationForm, Additional_feeForm, TermForm, Fee_paymentForm, AssociateFeeForm, MigrateTermForm    
 from jps_erp import app, db
@@ -1043,4 +1043,4 @@ def configure_grades():
         print(f"Debugging: Grade - ID: {grade.id}, Name: {grade.name}")
         streams = [stream.name for stream in grade.streams]
         print(f"Debugging: Streams for grade '{grade.name}': {streams}")
-    return render_template('configure_grades.html', form=form, grades=grades)
+    return render_template('configure_grades.html', form=form, grades=grades)"""

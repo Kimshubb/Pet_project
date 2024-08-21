@@ -1,6 +1,95 @@
-2024-07-21 21:44:44,709 DEBUG Logging setup complete.
-2024-07-21 21:52:16,857 DEBUG Logging setup complete.
-2024-07-21 21:56:22,277 DEBUG Logging setup complete.
-2024-07-21 21:57:32,174 DEBUG Logging setup complete.
-2024-07-21 22:15:00,838 DEBUG Logging setup complete.
-2024-07-21 22:18:45,161 DEBUG Logging setup complete.
+2024-08-20 15:51:10,432 DEBUG Logging setup complete.
+2024-08-20 15:51:12,659 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-08-20 15:51:12,660 INFO [33mPress CTRL+C to quit[0m
+2024-08-20 15:51:12,663 INFO  * Restarting with stat
+2024-08-20 15:51:13,589 DEBUG Logging setup complete.
+2024-08-20 15:51:15,669 WARNING  * Debugger is active!
+2024-08-20 15:51:15,675 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:51:25,890 INFO 127.0.0.1 - - [20/Aug/2024 15:51:25] "GET /auth.register HTTP/1.1" 200 -
+2024-08-20 15:51:43,208 INFO 127.0.0.1 - - [20/Aug/2024 15:51:43] "[32mPOST /auth.register HTTP/1.1[0m" 302 -
+2024-08-20 15:51:43,244 INFO 127.0.0.1 - - [20/Aug/2024 15:51:43] "GET /auth.login HTTP/1.1" 200 -
+2024-08-20 15:51:53,031 INFO 127.0.0.1 - - [20/Aug/2024 15:51:53] "[35m[1mPOST /auth.login HTTP/1.1[0m" 500 -
+2024-08-20 15:51:53,160 INFO 127.0.0.1 - - [20/Aug/2024 15:51:53] "GET /auth.login?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2024-08-20 15:51:53,161 INFO 127.0.0.1 - - [20/Aug/2024 15:51:53] "GET /auth.login?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2024-08-20 15:51:53,174 INFO 127.0.0.1 - - [20/Aug/2024 15:51:53] "GET /auth.login?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2024-08-20 15:51:53,186 INFO 127.0.0.1 - - [20/Aug/2024 15:51:53] "[36mGET /auth.login?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2024-08-20 15:52:39,762 INFO  * Detected change in 'C:\\Users\\Hp\\JPS_ERP_V1\\jps_erp\\auth\\routes.py', reloading
+2024-08-20 15:52:40,098 INFO  * Restarting with stat
+2024-08-20 15:52:41,157 DEBUG Logging setup complete.
+2024-08-20 15:52:43,626 WARNING  * Debugger is active!
+2024-08-20 15:52:43,631 INFO  * Debugger PIN: 597-399-429
+2024-08-20 15:52:45,853 INFO 127.0.0.1 - - [20/Aug/2024 15:52:45] "[32mPOST /auth.login HTTP/1.1[0m" 302 -
+2024-08-20 15:52:45,866 INFO 127.0.0.1 - - [20/Aug/2024 15:52:45] "[32mGET /dashboard HTTP/1.1[0m" 302 -
+2024-08-20 15:52:45,897 INFO 127.0.0.1 - - [20/Aug/2024 15:52:45] "GET /terms HTTP/1.1" 200 -
+2024-08-20 15:52:46,028 INFO 127.0.0.1 - - [20/Aug/2024 15:52:46] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:52:46,029 INFO 127.0.0.1 - - [20/Aug/2024 15:52:46] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:52:46,032 INFO 127.0.0.1 - - [20/Aug/2024 15:52:46] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:00,382 INFO 127.0.0.1 - - [20/Aug/2024 15:53:00] "[32mPOST /terms HTTP/1.1[0m" 302 -
+2024-08-20 15:53:00,393 INFO 127.0.0.1 - - [20/Aug/2024 15:53:00] "GET /terms HTTP/1.1" 200 -
+2024-08-20 15:53:00,410 INFO 127.0.0.1 - - [20/Aug/2024 15:53:00] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:00,411 INFO 127.0.0.1 - - [20/Aug/2024 15:53:00] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:00,414 INFO 127.0.0.1 - - [20/Aug/2024 15:53:00] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:10,851 INFO 127.0.0.1 - - [20/Aug/2024 15:53:10] "[32mPOST /terms?term_id=/1 HTTP/1.1[0m" 302 -
+2024-08-20 15:53:10,860 INFO 127.0.0.1 - - [20/Aug/2024 15:53:10] "GET /terms HTTP/1.1" 200 -
+2024-08-20 15:53:10,890 INFO 127.0.0.1 - - [20/Aug/2024 15:53:10] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:10,892 INFO 127.0.0.1 - - [20/Aug/2024 15:53:10] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:10,894 INFO 127.0.0.1 - - [20/Aug/2024 15:53:10] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:13,689 INFO 127.0.0.1 - - [20/Aug/2024 15:53:13] "GET /student_payments HTTP/1.1" 200 -
+2024-08-20 15:53:13,710 INFO 127.0.0.1 - - [20/Aug/2024 15:53:13] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:13,715 INFO 127.0.0.1 - - [20/Aug/2024 15:53:13] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:13,716 INFO 127.0.0.1 - - [20/Aug/2024 15:53:13] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:19,024 INFO 127.0.0.1 - - [20/Aug/2024 15:53:19] "GET /students HTTP/1.1" 200 -
+2024-08-20 15:53:19,059 INFO 127.0.0.1 - - [20/Aug/2024 15:53:19] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:19,061 INFO 127.0.0.1 - - [20/Aug/2024 15:53:19] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:19,066 INFO 127.0.0.1 - - [20/Aug/2024 15:53:19] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:20,553 INFO 127.0.0.1 - - [20/Aug/2024 15:53:20] "GET /students/add HTTP/1.1" 200 -
+2024-08-20 15:53:20,572 INFO 127.0.0.1 - - [20/Aug/2024 15:53:20] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:20,576 INFO 127.0.0.1 - - [20/Aug/2024 15:53:20] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:20,577 INFO 127.0.0.1 - - [20/Aug/2024 15:53:20] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:44,434 INFO 127.0.0.1 - - [20/Aug/2024 15:53:44] "GET /students/add HTTP/1.1" 200 -
+2024-08-20 15:53:44,452 INFO 127.0.0.1 - - [20/Aug/2024 15:53:44] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:44,456 INFO 127.0.0.1 - - [20/Aug/2024 15:53:44] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:44,458 INFO 127.0.0.1 - - [20/Aug/2024 15:53:44] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:50,361 INFO 127.0.0.1 - - [20/Aug/2024 15:53:50] "GET /settings HTTP/1.1" 200 -
+2024-08-20 15:53:50,396 INFO 127.0.0.1 - - [20/Aug/2024 15:53:50] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:50,402 INFO 127.0.0.1 - - [20/Aug/2024 15:53:50] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:50,403 INFO 127.0.0.1 - - [20/Aug/2024 15:53:50] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:55,103 INFO 127.0.0.1 - - [20/Aug/2024 15:53:55] "GET /settings HTTP/1.1" 200 -
+2024-08-20 15:53:55,124 INFO 127.0.0.1 - - [20/Aug/2024 15:53:55] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:55,126 INFO 127.0.0.1 - - [20/Aug/2024 15:53:55] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:55,128 INFO 127.0.0.1 - - [20/Aug/2024 15:53:55] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:59,059 INFO 127.0.0.1 - - [20/Aug/2024 15:53:59] "GET /configure_grades HTTP/1.1" 200 -
+2024-08-20 15:53:59,077 INFO 127.0.0.1 - - [20/Aug/2024 15:53:59] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:53:59,085 INFO 127.0.0.1 - - [20/Aug/2024 15:53:59] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:53:59,086 INFO 127.0.0.1 - - [20/Aug/2024 15:53:59] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:09,213 INFO 127.0.0.1 - - [20/Aug/2024 15:54:09] "[32mPOST /configure_grades HTTP/1.1[0m" 302 -
+2024-08-20 15:54:09,220 INFO 127.0.0.1 - - [20/Aug/2024 15:54:09] "GET /configure_grades HTTP/1.1" 200 -
+2024-08-20 15:54:09,251 INFO 127.0.0.1 - - [20/Aug/2024 15:54:09] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:54:09,252 INFO 127.0.0.1 - - [20/Aug/2024 15:54:09] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:09,254 INFO 127.0.0.1 - - [20/Aug/2024 15:54:09] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:20,878 INFO 127.0.0.1 - - [20/Aug/2024 15:54:20] "[32mPOST /configure_grades HTTP/1.1[0m" 302 -
+2024-08-20 15:54:20,887 INFO 127.0.0.1 - - [20/Aug/2024 15:54:20] "GET /configure_grades HTTP/1.1" 200 -
+2024-08-20 15:54:20,904 INFO 127.0.0.1 - - [20/Aug/2024 15:54:20] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:54:20,905 INFO 127.0.0.1 - - [20/Aug/2024 15:54:20] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:20,906 INFO 127.0.0.1 - - [20/Aug/2024 15:54:20] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:29,751 INFO 127.0.0.1 - - [20/Aug/2024 15:54:29] "[32mPOST /configure_grades HTTP/1.1[0m" 302 -
+2024-08-20 15:54:29,760 INFO 127.0.0.1 - - [20/Aug/2024 15:54:29] "GET /configure_grades HTTP/1.1" 200 -
+2024-08-20 15:54:29,790 INFO 127.0.0.1 - - [20/Aug/2024 15:54:29] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:54:29,792 INFO 127.0.0.1 - - [20/Aug/2024 15:54:29] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:29,793 INFO 127.0.0.1 - - [20/Aug/2024 15:54:29] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:36,147 INFO 127.0.0.1 - - [20/Aug/2024 15:54:36] "[32mPOST /configure_grades HTTP/1.1[0m" 302 -
+2024-08-20 15:54:36,155 INFO 127.0.0.1 - - [20/Aug/2024 15:54:36] "GET /configure_grades HTTP/1.1" 200 -
+2024-08-20 15:54:36,173 INFO 127.0.0.1 - - [20/Aug/2024 15:54:36] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:54:36,174 INFO 127.0.0.1 - - [20/Aug/2024 15:54:36] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:36,175 INFO 127.0.0.1 - - [20/Aug/2024 15:54:36] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:43,139 INFO 127.0.0.1 - - [20/Aug/2024 15:54:43] "[32mPOST /configure_grades HTTP/1.1[0m" 302 -
+2024-08-20 15:54:43,150 INFO 127.0.0.1 - - [20/Aug/2024 15:54:43] "GET /configure_grades HTTP/1.1" 200 -
+2024-08-20 15:54:43,179 INFO 127.0.0.1 - - [20/Aug/2024 15:54:43] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:54:43,181 INFO 127.0.0.1 - - [20/Aug/2024 15:54:43] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:43,184 INFO 127.0.0.1 - - [20/Aug/2024 15:54:43] "[36mGET /static/js/mdb.umd.min.js HTTP/1.1[0m" 304 -
+2024-08-20 15:54:54,624 INFO 127.0.0.1 - - [20/Aug/2024 15:54:54] "[32mPOST /configure_grades HTTP/1.1[0m" 302 -
+2024-08-20 15:54:54,636 INFO 127.0.0.1 - - [20/Aug/2024 15:54:54] "GET /configure_grades HTTP/1.1" 200 -
+2024-08-20 15:54:54,651 INFO 127.0.0.1 - - [20/Aug/2024 15:54:54] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2024-08-20 15:56:05,231 INFO  * Restarting with stat
+2024-08-20 15:59:00,451 DEBUG seek: 0
