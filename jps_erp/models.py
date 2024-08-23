@@ -1,4 +1,5 @@
 from jps_erp import db, login_manager
+from flask import current_app
 from typing import Optional
 import sqlalchemy as sa
 import sqlalchemy.orm as so
@@ -12,7 +13,8 @@ def load_user(user_id):
 
 class User(UserMixin, db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    username = sa.Column(sa.String(20), nullable=False)
+    username = sa.Column(sa.String(20), nullable=False, unique=True, index=True)
+    email = sa.Column(sa.String(120), nullable=False, unique=True, index=True)
     role = sa.Column(sa.String(20), nullable=False)
     password_hash = sa.Column(sa.String(256), nullable=False)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
@@ -25,6 +27,21 @@ class User(UserMixin, db.Model):
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    def get_reset_password_token(self, expires_in=600):
+        from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+        s = Serializer(current_app.config['SECRET_KEY'], expires_in)
+        return s.dumps({'user_id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_reset_password_token(token):
+        from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['user_id'])
 
     def __repr__(self):
         return f"User('{self.username}', '{self.role}')"

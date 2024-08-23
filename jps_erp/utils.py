@@ -1,11 +1,45 @@
 from sqlalchemy import func
-from jps_erp import app, db
+from jps_erp import db
 from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, student_additional_fee, Grade
 from flask_login import current_user
 import pdfplumber
 import re
 import spacy
 from datetime import date
+from jps_erp.tasks import send_async_email
+from flask import url_for
+
+def send_password_reset_email(user, token):
+    reset_url = url_for('auth.reset_password', token=token, _external=True)
+    send_async_email.delay(
+        subject='Reset Your Password',
+        recipient=user.email,
+        body=f'''To reset your password, click the following link:
+{reset_url}
+If you did not make this request, simply ignore this email and no changes will be made.
+'''
+    )
+
+def register_user(form):
+    user = User.query.filter_by(username=form.username.data).first()
+    if user:
+        return None, 'Username already exists.'
+
+    new_school = School(name=form.school_name.data, contacts=form.school_contacts.data)
+    db.session.add(new_school)
+    db.session.commit()
+
+    new_user = User(
+        username=form.username.data,
+        role=form.role.data,
+        school_id=new_school.school_id
+    )
+    new_user.set_password(form.password.data)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return new_user, None
+
 
 class FeeStructureNotFoundError(Exception):
     pass

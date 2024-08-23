@@ -2,9 +2,15 @@ from . import auth_bp
 from flask import render_template, url_for, flash, redirect, request, session
 from jps_erp import db
 from jps_erp.models import User, School
-from jps_erp.forms import User_registrationForm, Sign_inForm
+from jps_erp.utils import register_user, send_password_reset_email, send_async_email
+from jps_erp.forms import User_registrationForm, Sign_inForm, PasswordResetRequestForm, ResetPasswordForm  
 from flask_login import login_user, current_user, logout_user  
 import sqlalchemy as sa
+from redis import Redis
+from flask import current_app as app
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 
 
 @auth_bp.route("/", strict_slashes=False)
@@ -16,36 +22,58 @@ def home():
 
 @auth_bp.route("/register", methods=['GET', 'POST'], strict_slashes=False)
 def register():
-    #if current_user.is_authenticated:
-        #return redirect(url_for('dashboard'))
     form = User_registrationForm()
     if form.validate_on_submit():
-        # Check if username already exists
-        user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            flash('Username already exists. Please choose a different one.', 'danger')
+        user, error = register_user(form)
+        if error:
+            flash(error, 'danger')
             return redirect(url_for('auth.register'))
-        
-        # Create a new school
-        new_school = School(name=form.school_name.data, contacts=form.school_contacts.data)
-        db.session.add(new_school)
-        db.session.commit()
 
-        # Create a new user and associate it with the school
-        new_user = User(
-            username=form.username.data,
-            role=form.role.data,
-            school_id=new_school.school_id
+        # Send welcome email asynchronously
+        send_async_email.delay(
+            subject="Welcome to the Platform",
+            recipient=form.username.data,
+            body="Thank you for registering!"
         )
-        new_user.set_password(form.password.data)
-        db.session.add(new_user)
-        db.session.commit()
 
         flash(f'Account successfully created for {form.username.data}!', 'success')
         return redirect(url_for('auth.login'))
+
     return render_template('auth/register.html', form=form)
 
+@auth_bp.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    form = PasswordResetRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            token = user.get_reset_password_token()
+            send_password_reset_email(user, token)  # Send the reset email
+        flash('Check your email for instructions to reset your password.', 'info')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/reset_password_request.html', form=form)
+
+@auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    user = User.verify_reset_password_token(token)
+    if not user:
+        flash('Invalid or expired token', 'danger')
+        return redirect(url_for('auth.reset_password_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Your password has been reset.', 'success')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/reset_password.html', form=form)
+
+limiter = Limiter(key_func=get_remote_address, app=app)
 @auth_bp.route("/login", methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     print("Request method:", request.method)
     if request.method == 'POST':

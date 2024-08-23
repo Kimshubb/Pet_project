@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm 
 from wtforms import StringField, PasswordField, SubmitField, SelectField, BooleanField, FloatField, FieldList, SelectMultipleField, FormField, IntegerField, DateField
-from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional, Email
 from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term
 from jps_erp import db
 import sqlalchemy as sa
@@ -10,6 +10,7 @@ class User_registrationForm(FlaskForm):
     username = StringField('username', validators=[DataRequired(), Length(min=4, max=20)])
     role = SelectField('role', choices=[('admin', 'Admin'), ('teacher', 'Teacher'), ('accounts', 'Accounts')], validators=[DataRequired()])
     school_name = StringField('school_name', validators=[DataRequired()])
+    email = StringField('email', validators=[DataRequired(), Email()])
     school_contacts = StringField('school_contacts', validators=[DataRequired()])
     password = PasswordField('password', validators=[DataRequired(), Length(min=4, max=256)])
     confirm_password = PasswordField('confirm_password', validators=[DataRequired(), EqualTo('password')])  
@@ -27,6 +28,15 @@ class Sign_inForm(FlaskForm):
     password = PasswordField('password', validators=[DataRequired(), Length(min=4, max=256)])
     remember  = BooleanField('remember')
     submit = SubmitField('Log in')
+
+class PasswordResetRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    password2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
 
 class Student_registrationForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired()])
@@ -46,7 +56,8 @@ class Student_registrationForm(FlaskForm):
         #student = db.session.scalar(sa.select(Student).where(Student.contact_number1 == contact_number1.data))
         #if student is not None:
             #raise ValidationError("Student with this contact number already exists!")
-        
+
+
 class TermForm(FlaskForm):
     name = SelectField('Name', choices=[('Term 1', 'Term 1'), ('Term 2', 'Term 2'), ('Term 3', 'Term 3')], validators=[DataRequired()])
     start_date = DateField('Start Date', format='%Y-%m-%d', validators=[DataRequired()])
