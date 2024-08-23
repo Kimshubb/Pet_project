@@ -6,12 +6,13 @@ import pdfplumber
 import re
 import spacy
 from datetime import date
-from jps_erp.tasks import send_async_email
 from flask import url_for
+from jps_erp.tasks import send_async_email_task
 
 def send_password_reset_email(user, token):
     reset_url = url_for('auth.reset_password', token=token, _external=True)
-    send_async_email.delay(
+      # Delay the import to avoid circular imports
+    send_async_email_task.delay(
         subject='Reset Your Password',
         recipient=user.email,
         body=f'''To reset your password, click the following link:
@@ -39,7 +40,6 @@ def register_user(form):
     db.session.commit()
 
     return new_user, None
-
 
 class FeeStructureNotFoundError(Exception):
     pass

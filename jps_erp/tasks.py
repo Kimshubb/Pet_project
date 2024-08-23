@@ -1,6 +1,7 @@
 from flask_mail import Message
 from celery import Celery
 from flask import current_app
+from celery import current_task
 
 celery = Celery('tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
 
@@ -16,20 +17,16 @@ def send_async_email(subject, recipient, body):
     """Function to enqueue email sending task."""
     send_async_email_task.delay(subject, recipient, body)
 
-from jps_erp import create_app
-from celery.utils.log import get_task_logger
-
-app, celery, redis_client = create_app()
-
-logger = get_task_logger(__name__)
-
 @celery.task
 def log_to_syslog(message, level='info'):
-    if level == 'info':
-        app.logger.info(message)
-    elif level == 'warning':
-        app.logger.warning(message)
-    elif level == 'error':
-        app.logger.error(message)
-    else:
-        app.logger.debug(message)
+    """Celery task to log messages to syslog."""
+    app = current_task.get_app()
+    with app.app_context():
+        if level == 'info':
+            app.logger.info(message)
+        elif level == 'warning':
+            app.logger.warning(message)
+        elif level == 'error':
+            app.logger.error(message)
+        else:
+            app.logger.debug(message)

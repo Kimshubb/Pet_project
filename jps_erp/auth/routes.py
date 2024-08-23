@@ -2,7 +2,7 @@ from . import auth_bp
 from flask import render_template, url_for, flash, redirect, request, session
 from jps_erp import db
 from jps_erp.models import User, School
-from jps_erp.utils import register_user, send_password_reset_email, send_async_email
+from jps_erp.utils import register_user, send_password_reset_email, send_async_email_task
 from jps_erp.forms import User_registrationForm, Sign_inForm, PasswordResetRequestForm, ResetPasswordForm  
 from flask_login import login_user, current_user, logout_user  
 import sqlalchemy as sa
@@ -30,7 +30,7 @@ def register():
             return redirect(url_for('auth.register'))
 
         # Send welcome email asynchronously
-        send_async_email.delay(
+        send_async_email_task.delay(
             subject="Welcome to the Platform",
             recipient=form.username.data,
             body="Thank you for registering!"
