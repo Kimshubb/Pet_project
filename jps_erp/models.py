@@ -117,6 +117,7 @@ class Student(db.Model):
     grade_id = sa.Column(sa.Integer, sa.ForeignKey('grade.id'), nullable=False)
     stream_id = sa.Column(sa.Integer, sa.ForeignKey('stream.id'), nullable=False)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
+    cf_balance = sa.Column(sa.Float, default=0.0)
     active = sa.Column(sa.Boolean, default=True, nullable=False)  # Indicates if the student is currently enrolled
     left_date = sa.Column(sa.Date, nullable=True)  # Date when the student left, if applicable
     current_term_id = sa.Column(sa.Integer, sa.ForeignKey('term.id'), nullable=True)  # Current term of the student
@@ -139,7 +140,6 @@ class FeePayment(db.Model):
     pay_date = sa.Column(sa.Date, nullable=False)
     code = sa.Column(sa.String(20), nullable=True, unique=True)
     balance = sa.Column(sa.Float, nullable=False)
-    cf_balance = sa.Column(sa.Float, default=0.0)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
     student_id = sa.Column(sa.String, sa.ForeignKey('student.student_id'), nullable=False)
     term_id = sa.Column(sa.Integer, sa.ForeignKey('term.id'), nullable=False)

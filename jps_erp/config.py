@@ -6,7 +6,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or \
-        'mysql+pymysql://FeeFoFun:V5xL8mxCuZV8J#u@FeeFoFun.mysql.pythonanywhere-services.com/FeeFoFun$default'
+        'sqlite:///' + os.path.join(basedir, 'jpserp_kisii.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(basedir, 'static/uploads')
     ALLOWED_EXTENSIONS = {'pdf'}

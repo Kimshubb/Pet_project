@@ -1,5 +1,6 @@
 from sqlalchemy import func
 from jps_erp import db
+import sqlalchemy as sa
 from jps_erp.models import User, Student, School, FeePayment, FeeStructure, AdditionalFee, Term, MpesaTransaction, student_additional_fee, Grade
 from flask_login import current_user
 import pdfplumber
@@ -51,7 +52,7 @@ def calculate_balance(student_id):
         raise ValueError("Student not found")
     
     # Get the current term
-    current_term = Term.query.filter_by(current=True, school_id=current_user.school_id).first()
+    current_term = Term.query.filter_by(current=True, school_id=student.school_id).first()
     if not current_term:
         raise ValueError("Current term not found")
     
@@ -61,10 +62,7 @@ def calculate_balance(student_id):
         school_id=student.school_id,
         term_id=current_term.id
     ).first()
-    print("Debug fee structure query", fee_structure)
     if not fee_structure:
-        print(f"Grade: {student.grade}, School ID: {student.school_id}, Term name: {current_term.name}, Term year: {current_term.year}")
-
         raise FeeStructureNotFoundError("Fee structure not found for the student's grade and school in the current term")
     
     # Calculate the total standard fees for the grade
@@ -78,26 +76,33 @@ def calculate_balance(student_id):
     
     # Calculate the total additional fees for the student
     total_additional_fees = (
-        db.session.query(func.sum(AdditionalFee.amount))
+        db.session.query(sa.func.sum(AdditionalFee.amount))
         .join(student_additional_fee, AdditionalFee.id == student_additional_fee.c.additional_fee_id)
         .filter(student_additional_fee.c.student_id == student_id)
         .scalar() or 0.0
     )
     
-    # Get the balance carry forward for the student
+    # Get the balance carry forward for the student, including onboarding balance
     previous_term_payment = FeePayment.query.filter(
         FeePayment.student_id == student_id,
         FeePayment.term_id != current_term.id
     ).order_by(FeePayment.term_id.desc()).first()
-    carry_forward_balance = previous_term_payment.balance if previous_term_payment else 0.0
+
+    # Start with the carry forward balance from onboarding
+    carry_forward_balance = student.cf_balance
     
-    # Calculate the total amount paid by the student
-    total_paid = db.session.query(func.sum(FeePayment.amount)).filter_by(student_id=student_id, term_id=current_term.id).scalar() or 0.0
+    # Add any outstanding balance from previous term payments
+    if previous_term_payment:
+        carry_forward_balance += previous_term_payment.balance or 0.0
     
-    # Calculate the balance
+    # Calculate the total amount paid by the student in the current term
+    total_paid = db.session.query(sa.func.sum(FeePayment.amount)).filter_by(student_id=student_id, term_id=current_term.id).scalar() or 0.0
+    
+    # Calculate the balance owed
     balance = (total_standard_fees + total_additional_fees + carry_forward_balance) - total_paid
     
     return balance, carry_forward_balance
+
 
 nlp = spacy.load('en_core_web_sm')
 

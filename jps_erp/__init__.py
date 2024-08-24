@@ -17,26 +17,32 @@ migrate = Migrate()
 login_manager = LoginManager()
 mail = Mail()
 
+
 # Setup logging
 def setup_syslog_logger(app):
+    log_level = logging.INFO
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+
     if platform.system() == 'Linux':
         syslog_handler = logging.handlers.SysLogHandler(address='/dev/log')
-        syslog_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+        syslog_handler.setLevel(log_level)
         syslog_handler.setFormatter(formatter)
         app.logger.addHandler(syslog_handler)
+        app.logger.info('Logging initialized on Linux')
     elif platform.system() == 'Windows':
         event_log_handler = logging.handlers.NTEventLogHandler(app.name)
-        event_log_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+        event_log_handler.setLevel(log_level)
         event_log_handler.setFormatter(formatter)
         app.logger.addHandler(event_log_handler)
+        app.logger.info('Logging initialized on Windows')
     else:
-        file_handler = logging.FileHandler('app.log')
-        file_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+        log_file = 'jps_erp.log'
+        file_handler = logging.handlers.RotatingFileHandler(log_file , maxBytes=10*1024*1024, backupCount=5)
+        file_handler.setLevel(log_level)
         file_handler.setFormatter(formatter)
         app.logger.addHandler(file_handler)
+        app.logger.info('Logging initialized on %s', platform.system())
+    app.logger.propagate = False
 
 def create_app():
     app = Flask(__name__)

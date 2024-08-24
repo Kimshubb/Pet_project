@@ -50,6 +50,7 @@ class Student_registrationForm(FlaskForm):
                                           ('Grade 4', 'Grade 4'), ('Grade 5', 'Grade 5'), ('Grade 6', 'Grade 6'), 
                                           ('Grade 7', 'Grade 7'), ('Grade 8', 'Grade 8')], validators=[DataRequired()])
     stream = SelectField('Stream', choices=[], validators=[DataRequired()])
+    cf_balance = FloatField('Carry Forward Balance', default=0.0)
     submit = SubmitField('Add Student')
 
     #def validate_phone_number(self, contact_number1):

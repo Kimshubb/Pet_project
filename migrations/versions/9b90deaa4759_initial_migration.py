@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: 388c7902b418
+Revision ID: 9b90deaa4759
 Revises: 
-Create Date: 2024-07-29 14:16:51.512879
+Create Date: 2024-08-23 08:43:48.482496
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '388c7902b418'
+revision = '9b90deaa4759'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -66,12 +66,15 @@ def upgrade():
     op.create_table('user',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('username', sa.String(length=20), nullable=False),
+    sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('role', sa.String(length=20), nullable=False),
     sa.Column('password_hash', sa.String(length=256), nullable=False),
     sa.Column('school_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['school_id'], ['school.school_id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
+    op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
     op.create_table('audit',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('action', sa.String(length=50), nullable=False),
@@ -110,7 +113,7 @@ def upgrade():
     op.create_table('student',
     sa.Column('student_id', sa.String(length=10), nullable=False),
     sa.Column('full_name', sa.String(length=100), nullable=False),
-    sa.Column('dob', sa.String(length=10), nullable=False),
+    sa.Column('dob', sa.Date(), nullable=False),
     sa.Column('gender', sa.String(length=10), nullable=False),
     sa.Column('guardian_name', sa.String(length=100), nullable=False),
     sa.Column('contact_number1', sa.String(length=20), nullable=False),
@@ -118,6 +121,7 @@ def upgrade():
     sa.Column('grade_id', sa.Integer(), nullable=False),
     sa.Column('stream_id', sa.Integer(), nullable=False),
     sa.Column('school_id', sa.Integer(), nullable=False),
+    sa.Column('cf_balance', sa.Float(), nullable=True),
     sa.Column('active', sa.Boolean(), nullable=False),
     sa.Column('left_date', sa.Date(), nullable=True),
     sa.Column('current_term_id', sa.Integer(), nullable=True),
@@ -136,7 +140,6 @@ def upgrade():
     sa.Column('pay_date', sa.Date(), nullable=False),
     sa.Column('code', sa.String(length=20), nullable=True),
     sa.Column('balance', sa.Float(), nullable=False),
-    sa.Column('cf_balance', sa.Float(), nullable=True),
     sa.Column('school_id', sa.Integer(), nullable=False),
     sa.Column('student_id', sa.String(), nullable=False),
     sa.Column('term_id', sa.Integer(), nullable=False),
@@ -165,6 +168,8 @@ def downgrade():
     op.drop_table('stream')
     op.drop_table('fee_structure')
     op.drop_table('audit')
+    op.drop_index(op.f('ix_user_username'), table_name='user')
+    op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
     op.drop_table('term')
     op.drop_table('grade')
