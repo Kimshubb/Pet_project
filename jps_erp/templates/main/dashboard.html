@@ -5,203 +5,192 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     
-<!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{url_for('static', filename='css/style.css')}}" rel="stylesheet">
 
-
-{% block head %}{% endblock %}
+    {% block head %}{% endblock %}
 </head>
 <body>
-    <!--Sidebar-->
-   <div class="container">
-     <div class="navigation">
-        <ul>
-            <li>
-                <a href="#">
-                    <span class="icon">
-                        <!--<img src="{{ url_for('static', filename='images/logo.png') }}" alt="School Logo" style="width: 200px; height: 100%;">-->
-                    </span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('main.dashboard')}}">
-                    <span class="icon">
-                        <ion-icon name="school-sharp"></ion-icon>
-                    </span>
-                    <span class="title">{{ current_user.school.name }}</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('main.dashboard')}}">
-                    <span class="icon">
-                        <ion-icon name="apps"></ion-icon>
-                    </span>
-                    <span class="title">Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('students.students') }}">
-                    <span class="icon">
-                        <ion-icon name="accessibility-sharp"></ion-icon>
-                    </span>
-                    <span class="title">Students</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('payments.student_payments') }}">
-                <span class="icon">
-                    <ion-icon name="wallet-sharp"></ion-icon>
-                </span>
-                <span class="title">Fees</span></a>
-            </li>
-            <li>
-                <a href="#">
-                <span class="icon">
-                    <ion-icon name="people-sharp"></ion-icon>
-                </span>
-                <span class="title">Staff</span></a>
-            </li>
-            <li>
-                <a href="#">
-                <span class="icon">
-                    <ion-icon name="library-sharp"></ion-icon>
-                </span>
-                <span class="title">Library</span></a>
-            </li>
-            <li>
-                <a href="{{ url_for('settings.settings') }}">
-                <span class="icon">
-                    <ion-icon name="settings-sharp"></ion-icon>
-                </span>
-                <span class="title">Settings</span></a>
-            </li>
-            
-            <li>
-                <a href="{{ url_for('auth.logout')}}">
-                <span class="icon">
-                    <ion-icon name="log-out-sharp"></ion-icon>
-                </span>
-                <span class="title">Sign out</span></a>
-            </li>
+    <body>
+        <div class="wrapper">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="sidebar bg-primary">
+                <div class="sidebar-header text-center text-white py-3">
+                    <h3>Your School Name</h3>
+                </div>
+                <ul class="list-unstyled components">
+                    <li>
+                        <a href="{{ url_for('main.dashboard')}}">
+                            <ion-icon name="apps"></ion-icon>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('students.students') }}">
+                            <ion-icon name="accessibility-sharp"></ion-icon>
+                            <span>Students</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('payments.student_payments') }}">
+                            <ion-icon name="wallet-sharp"></ion-icon>
+                            <span>Fees</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <ion-icon name="people-sharp"></ion-icon>
+                            <span>Staff</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <ion-icon name="library-sharp"></ion-icon>
+                            <span>Library</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('settings.settings') }}">
+                            <ion-icon name="settings-sharp"></ion-icon>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('auth.logout') }}">
+                            <ion-icon name="log-out-sharp"></ion-icon>
+                            <span>Sign out</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+    
+            <!-- Page Content -->
+            <div id="content">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <div class="container-fluid">
+                        <button type="button" id="sidebarCollapse" class="btn btn-info">
+                            <ion-icon name="menu-outline"></ion-icon>
+                        </button>
+                        <div class="user-info ml-auto">
+                            <p>Welcome, {{ current_user.username }}!</p>
+                        </div>
+                    </div>
+                </nav>
+                {% block content %}
 
-        </ul>
-      
-     </div>
-   </div>
-    <!--End of Sidebar-->
-    <div class="main">
-        <div class="topbar">
-            <div class="toggle">
-                <ion-icon name="menu-outline"></ion-icon>
-            </div>
-            <div class="user-info">
-                <p>Welcome, {{ current_user.username }}!</p>
-            </div>
-            <div class="user">
-                <ion-icon name="person-circle"></ion-icon>
+                <!-- Your main content goes here -->
+                <div class="container-fluid">
+                    <!-- Card Box -->
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
+                        <!-- Card 1: Active Students -->
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ total_active_students }}</h5>
+                                    <p class="card-text">Active Students</p>
+                                </div>
+                                <div class="card-footer">
+                                    <ion-icon name="people"></ion-icon>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card 2: Inactive Students -->
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ total_inactive_students_year }}</h5>
+                                    <p class="card-text">Inactive Students</p>
+                                </div>
+                                <div class="card-footer">
+                                    <ion-icon name="people"></ion-icon>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card 3: Cash Today -->
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ total_paid_via_cash_today }}</h5>
+                                    <p class="card-text">Cash Today</p>
+                                </div>
+                                <div class="card-footer">
+                                    <ion-icon name="cash"></ion-icon>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card 4: Bank Today -->
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ total_banked_today }}</h5>
+                                    <p class="card-text">Bank Today</p>
+                                </div>
+                                <div class="card-footer">
+                                    <ion-icon name="wallet-sharp"></ion-icon>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card 5: Departments -->
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">345</h5>
+                                    <p class="card-text">Departments</p>
+                                </div>
+                                <div class="card-footer">
+                                    <ion-icon name="briefcase"></ion-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Recent Payments Table -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Payments</h5>
+                            <a href="{{ url_for('payments.recent_payments') }}" class="btn btn-primary btn-sm">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Grade</th>
+                                            <th>Amount</th>
+                                            <th>Method</th>
+                                            <th>Code</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for payment in recent_payments %}
+                                        <tr>
+                                            <td>{{ payment[0] }}</td>
+                                            <td>{{ payment[1] }}</td>
+                                            <td>{{ payment[2] }}</td>
+                                            <td>{{ payment[3] }}</td>
+                                            <td>{{ payment[4] if payment[3] in ['Mpesa', 'Bank'] else 'N/A' }}</td>
+                                            <td>{{ 'Verified' if payment[5] else 'Pending' }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        {% block content %}
-        <div class="cardBox">
-            <div class="card">
-                <div>
-                  <div class="numbers">{{ total_active_students }}</div>
-                  <div class="cardname">Active Students</div>
-                </div>
-                <div class="iconBox">
-                    <ion-icon name="people"></ion-icon>
-                </div>          
-            </div>
-            <div class="card">
-                <div>
-                  <div class="numbers">{{ total_inactive_students_year }}</div>
-                  <div class="cardname">InActive Students</div>
-                </div>
-                <div class="iconBox">
-                    <ion-icon name="people"></ion-icon>
-                </div>          
-            </div>
-            <div class="card">
-                <div>
-                  <div class="numbers">{{ total_paid_via_cash_today }}</div>
-                  <div class="cardname">Cash Today</div>
-                </div>
-                <div class="iconBox">
-                    <ion-icon name="cash"></ion-icon>
-                </div>          
-            </div>
-            <div class="card">
-                <div>
-                  <div class="numbers">{{ total_banked_today }}</div>
-                  <div class="cardname">Bank Today</div>
-                </div>
-                <div class="iconBox">
-                    <ion-icon name="wallet-sharp"></ion-icon>
-                </div>          
-            </div>
-            <div class="card">
-                <div>
-                  <div class="numbers">345</div>
-                  <div class="cardname">Departments</div>
-                </div>
-                <div class="iconBox">
-                    <ion-icon name="briefcase"></ion-icon>
-                </div>          
-            </div>
-        </div>
-        <div class="details">
-            <div class="recentpayments">
-                <div class="cardheader">
-                    <h2>Recent Payments</h2>
-                    <a href="{{ url_for('payments.recent_payments')}}" class="btn">View All</a>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <td>Student</td>
-                            <td>Grade</td>
-                            <td>Amount</td>
-                            <td>Method</td>
-                            <td>Code</td>
-                            <td>Status</td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for payment in recent_payments %}
-                        
-                        <tr>
-                            <td>{{ payment[0] }}</td>
-                            <td>{{ payment[1] }}</td>
-                            <td>{{ payment[2] }}</td>
-                            <td>{{ payment[3] }}</td>
-                            <td>{{ payment[4] if payment[3] in ['Mpesa', 'Bank'] else 'N/A' }}</td>
-                            <td>{{ 'Verified' if payment[5] else 'Pending' }}</td>
-                        </tr>
-                        
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-        </div>
-    </div>
-    {% endblock %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/main.js')}}" > </script>
-    <!--<script src="\Users\Hp\JPS_ERP_V1\static/js/main.js">-->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <!-- form Date picker -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/mdb.umd.min.js') }}"> </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-{% block scripts %}{% endblock %}
-
-</body>
-
+        {% endblock %}
+    
+        <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+        <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        {% block scripts %}{% endblock %}
+    </body>
+    
 </html>

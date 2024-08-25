@@ -3,7 +3,7 @@ from flask import render_template, redirect, url_for, flash, session, jsonify, r
 from jps_erp.models import Term, Stream, Grade, Student
 from jps_erp.utils import current_year, get_recent_payments, active_students, inactive_students_term, inactive_students_year, paid_via_method_today
 from flask_login import login_required, current_user
-from jps_erp.tasks import send_bulk_sms_task
+from jps_erp.tasks import send_bulk_sms_notification
 
 
 @main_bp.route('/bulk_sms', methods=['POST', 'GET'])
@@ -30,7 +30,7 @@ def send_bulk_sms_route():
         from jps_erp.tasks import log_bulk_sms_event  # Delay the import to avoid circular imports
         log_bulk_sms_event.delay(selected_grade, message, success=True)
         # Send bulk SMS asynchronously
-        send_bulk_sms_task.delay(sms_list)
+        send_bulk_sms_notification.delay(sms_list)
 
         flash(f'SMS sent to all parents in {selected_grade}', 'success')
 

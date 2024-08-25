@@ -93,7 +93,7 @@ class FeeStructure(db.Model):
     grade = so.relationship('Grade', back_populates='fee_structure')
 
 student_additional_fee = sa.Table('student_additional_fee', db.Model.metadata,
-    sa.Column('student_id', sa.String, sa.ForeignKey('student.student_id'), primary_key=True),
+    sa.Column('student_id', sa.String(10), sa.ForeignKey('student.student_id'), primary_key=True),
     sa.Column('additional_fee_id', sa.Integer, sa.ForeignKey('additional_fee.id'), primary_key=True)
 )
 
@@ -141,7 +141,7 @@ class FeePayment(db.Model):
     code = sa.Column(sa.String(20), nullable=True, unique=True)
     balance = sa.Column(sa.Float, nullable=False)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
-    student_id = sa.Column(sa.String, sa.ForeignKey('student.student_id'), nullable=False)
+    student_id = sa.Column(sa.String(10), sa.ForeignKey('student.student_id'), nullable=False)
     term_id = sa.Column(sa.Integer, sa.ForeignKey('term.id'), nullable=False)
 
     term = so.relationship('Term', back_populates='fee_payments')

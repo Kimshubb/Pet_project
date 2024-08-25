@@ -23,24 +23,47 @@ If you did not make this request, simply ignore this email and no changes will b
     )
 
 def register_user(form):
+    # Check if the username already exists
     user = User.query.filter_by(username=form.username.data).first()
     if user:
         return None, 'Username already exists.'
+    
+    # Check if the school already exists
+    existing_school = School.query.filter_by(name=form.school_name.data).first()
+    
+    if existing_school:
+        # Check how many users are associated with this school
+        user_count = User.query.filter_by(school_id=existing_school.school_id).count()
+        if user_count >= 3:
+            return None, 'This school already has the maximum number of users.'
 
-    new_school = School(name=form.school_name.data, contacts=form.school_contacts.data)
-    db.session.add(new_school)
-    db.session.commit()
+        # No need to add the school again, just create a new user for this school
+        new_user = User(
+            username=form.username.data,
+            email=form.email.data,
+            role=form.role.data,
+            school_id=existing_school.school_id
+        )
+    else:
+        # Create a new school and add the first user
+        new_school = School(name=form.school_name.data, contacts=form.school_contacts.data)
+        db.session.add(new_school)
+        db.session.commit()
 
-    new_user = User(
-        username=form.username.data,
-        role=form.role.data,
-        school_id=new_school.school_id
-    )
+        new_user = User(
+            username=form.username.data,
+            email=form.email.data,
+            role=form.role.data,
+            school_id=new_school.school_id
+        )
+
+    # Set user password and add the user to the database
     new_user.set_password(form.password.data)
     db.session.add(new_user)
     db.session.commit()
 
     return new_user, None
+
 
 class FeeStructureNotFoundError(Exception):
     pass

@@ -1,28 +1,61 @@
-//add hovered class to selected list item and remove it from others
-let list = document.querySelectorAll('.navigation li');
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('content');
+    const sidebarCollapse = document.getElementById('sidebarCollapse');
+    const body = document.body;
 
-function activeLink() {
-    list.forEach((item) =>
-        item.classList.remove('hovered'));
-    this.classList.add('hovered');
-}
-list.forEach((item) => item.addEventListener('mouseover', activeLink));
+    // Create overlay div
+    const overlay = document.createElement('div');
+    overlay.classList.add('overlay');
+    body.appendChild(overlay);
 
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        content.classList.toggle('active');
+        overlay.classList.toggle('active');
+        body.classList.toggle('sidebar-active');
+    }
 
+    sidebarCollapse.addEventListener('click', function(event) {
+        event.stopPropagation();
+        toggleSidebar();
+    });
 
-//menu toggle
-let toggle = document.querySelector('.toggle');
-let navigation = document.querySelector('.navigation');
-let main = document.querySelector('.main');
+    // Close sidebar when clicking on the overlay
+    overlay.addEventListener('click', function() {
+        if (sidebar.classList.contains('active')) {
+            toggleSidebar();
+        }
+    });
 
-toggle.onclick = function () {
-    navigation.classList.toggle('active');
-    main.classList.toggle('active');
-}
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        const targetElement = event.target;
+        if (window.innerWidth <= 768 && sidebar.classList.contains('active') && 
+            !sidebar.contains(targetElement) && !sidebarCollapse.contains(targetElement)) {
+            toggleSidebar();
+        }
+    });
 
-// Path: register student modal
-// Initialization for ES Users
+    // Active link
+    const navLinks = document.querySelectorAll('#sidebar ul li a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            navLinks.forEach(navLink => navLink.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
 
-//import { Modal, Ripple, initMDB } from "mdb-ui-kit";
-
-//initMDB({ Modal, Ripple });
+    // Responsive table (keep this part from the previous version)
+    const tables = document.querySelectorAll('.table-responsive table');
+    tables.forEach(table => {
+        const headers = table.querySelectorAll('th');
+        const rows = table.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            row.querySelectorAll('td').forEach((cell, index) => {
+                cell.setAttribute('data-label', headers[index].textContent);
+            });
+        });
+    });
+});

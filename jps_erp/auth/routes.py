@@ -1,5 +1,5 @@
 from . import auth_bp
-from flask import render_template, url_for, flash, redirect, request, session
+from flask import render_template, url_for, flash, redirect, request, session, jsonify
 from jps_erp import db
 from jps_erp.models import User, School
 from jps_erp.utils import register_user, send_password_reset_email, send_async_email_task
@@ -20,11 +20,27 @@ def home():
     else:
         return render_template ('main/index.html')
 
+@auth_bp.route('/autocomplete_school', methods=['GET'])
+def autocomplete_school():
+    search_term = request.args.get('q', '')
+    results = School.query.filter(School.name.ilike(f'%{search_term}%')).all()
+    school_names = [school.name for school in results]
+    return jsonify(school_names)
+
+@auth_bp.route('/get_school_contacts', methods=['GET'])
+def get_school_contacts():
+    school_name = request.args.get('school_name')
+    school = School.query.filter_by(name=school_name).first()
+    if school:
+        return jsonify({'contacts': school.contacts})
+    else:
+        return jsonify({'contacts': None})
+
 @auth_bp.route("/register", methods=['GET', 'POST'], strict_slashes=False)
 def register():
     form = User_registrationForm()
     if form.validate_on_submit():
-        user, error = register_user(form)
+        new_user, error = register_user(form)
         if error:
             flash(error, 'danger')
             return redirect(url_for('auth.register'))

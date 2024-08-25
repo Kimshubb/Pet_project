@@ -167,5 +167,39 @@
         </div>
     </div>
 </div>
+<!-- Include jQuery and jQuery UI for Autocomplete -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Autocomplete for school name
+    $('#school_name').autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: "{{ url_for('auth.autocomplete_school') }}",
+                data: { q: request.term },
+                success: function(data) {
+                    response(data);
+                }
+            });
+        },
+        minLength: 2,  // Start suggesting after typing 2 characters
+        select: function(event, ui) {
+            // When a school is selected, fetch its contact information
+            $.ajax({
+                url: "{{ url_for('auth.get_school_contacts') }}",
+                data: { school_name: ui.item.value },
+                success: function(data) {
+                    if (data.contacts) {
+                        $('#school_contacts').val(data.contacts);
+                        $('#school_contacts').prop('readonly', true);  // Make the contacts field read-only
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
 </body>
 </html>

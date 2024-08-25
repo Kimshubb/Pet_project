@@ -10,6 +10,7 @@ import logging
 import logging.handlers
 import platform
 import redis
+from dotenv import load_dotenv
 
 # Initialize SQLAlchemy, Migrate, LoginManager, Mail
 db = SQLAlchemy()
@@ -46,6 +47,8 @@ def setup_syslog_logger(app):
 
 def create_app():
     app = Flask(__name__)
+    #load env variables from .env file
+    load_dotenv()
     app.config.from_object(Config)
 
     # Initialize extensions
