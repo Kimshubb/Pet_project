@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Close sidebar when clicking outside on mobile
+    // Close sidebar when clicking outside on any screen size
     document.addEventListener('click', function(event) {
         const targetElement = event.target;
-        if (window.innerWidth <= 768 && sidebar.classList.contains('active') && 
+        if (sidebar.classList.contains('active') && 
             !sidebar.contains(targetElement) && !sidebarCollapse.contains(targetElement)) {
             toggleSidebar();
         }
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Responsive table (keep this part from the previous version)
+    // Responsive table
     const tables = document.querySelectorAll('.table-responsive table');
     tables.forEach(table => {
         const headers = table.querySelectorAll('th');

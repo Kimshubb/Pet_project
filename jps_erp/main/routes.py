@@ -45,6 +45,7 @@ def dashboard():
     user_name = session.get('user_name', 'User')  # Getting user name from session
     school_name = session.get('school_name', 'Your School')  # Getting school name from session
     current_term = Term.query.filter_by(school_id=current_user.school_id, current=True).first()
+    print(f"School Name from session: {school_name}")
     if not current_term:
         flash('No current term set. Please set a current term.', 'info')
         return redirect(url_for('settings.manage_terms'))

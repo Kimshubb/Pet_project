@@ -11,8 +11,6 @@
 
 body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
-    background: var(--secondary-color);
-    overflow-x: hidden;
 }
 
 .wrapper {
@@ -21,78 +19,59 @@ body {
     align-items: stretch;
 }
 
-/* Sidebar Styles */
+
+/* Sidebar */
 #sidebar {
-    min-width: 200px;
-    max-width: 200px;
+    min-width: 250px;
+    max-width: 250px;
     background: var(--primary-color);
     color: var(--light-color);
     transition: all 0.3s;
     position: fixed;
-    height: 100vh;
     top: 0;
     left: 0;
-    z-index: 1000;
+    height: 100vh;
+    z-index: 1000; /* Ensure sidebar is above other content */
 }
 
 #sidebar.active {
-    margin-left: -200px;
+    margin-left: -250px;
 }
 
 #sidebar .sidebar-header {
     padding: 20px;
     background: var(--primary-color);
-    text-align: center;
 }
 
 #sidebar ul.components {
     padding: 20px 0;
-    list-style: none;
 }
 
 #sidebar ul li a {
-    padding: 10px 20px;
+    padding: 10px;
     font-size: 1.1em;
     display: block;
     color: var(--light-color);
     text-decoration: none;
-    transition: all 0.3s;
 }
 
-#sidebar ul li a:hover,
-#sidebar ul li a.active {
+#sidebar ul li a:hover {
     color: var(--primary-color);
     background: var(--light-color);
 }
 
-#sidebar ul li a ion-icon {
+.sidebar .nav-link ion-icon {
     margin-right: 10px;
 }
 
-/* Content Area */
-#content {
-    width: 100%;
-    padding: 20px;
-    min-height: 100vh;
-    margin-left: 200px; /* Align content to the right of the sidebar */
-    transition: all 0.3s;
+/* Main content */
+main {
+    padding-top: 48px;
 }
 
-/* Navbar */
-.navbar {
-    padding: 15px 10px;
-    background: #fff;
-    border: none;
-    border-radius: 0;
-    margin-bottom: 40px;
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Card Styles */
+/* Cards */
 .card {
     transition: 0.3s;
-    background-color: #fff;
-    border-radius: 8px;
 }
 
 .card:hover {
@@ -107,7 +86,7 @@ body {
     padding: 10px;
 }
 
-/* Table Styles */
+/* Table */
 .table th {
     font-weight: 600;
 }
@@ -135,22 +114,46 @@ body {
 }
 
 /* Responsive adjustments */
+#content {
+    width: calc(100%-250px);
+    padding: 20px;
+    margin-left: 250px;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+#content.active {
+    width: 100%;
+    margin-left: 0;
+}
+
+.navbar {
+    padding: 15px 10px;
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 40px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
     #sidebar {
-        margin-left: -200px;
+        margin-left: -250px;
     }
     #sidebar.active {
         margin-left: 0;
     }
     #content {
-        /*margin-left: 0;*/
-        left: 250px;
+        width: 100%;
+        left: 0;
+        margin-left: 0;
     }
-    /*#sidebarCollapse span {
-        display: none;
-    }*/
+    #content.active {
+        left: 250px; /* Push content when sidebar is active */
+    }
     body.sidebar-active {
-        overflow: hidden;
+        overflow: hidden; /* Prevent scrolling when sidebar is open on mobile */
     }
 }
 
