@@ -1,5 +1,6 @@
 import os
 import redis
+from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -19,7 +20,8 @@ class Config:
     SESSION_TYPE = 'redis'
     SESSION_PERMANENT = False
     SESSION_USE_SIGNER = True
-    SESSION_REDIS = redis.StrictRedis.from_url(REDIS_URL)   
+    SESSION_REDIS = redis.StrictRedis.from_url(REDIS_URL)
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
 
     # Celery configuration
     CELERY_BROKER_URL = REDIS_URL

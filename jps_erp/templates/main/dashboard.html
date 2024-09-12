@@ -27,34 +27,92 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url_for('students.students') }}">
+                        <a href="#studentsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <ion-icon name="accessibility-sharp"></ion-icon>
                             <span>Students</span>
                         </a>
+                        <ul class="collapse list-unstyled" id="studentsSubmenu">
+                            <li>
+                                <a href="{{ url_for('students.students') }}">View Students</a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('students.add_student') }}">Add Student</a>
+                            </li>
+                        </ul>
                     </li>
                     <li>
-                        <a href="{{ url_for('payments.student_payments') }}">
+                        <a href="#paymentsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <ion-icon name="wallet-sharp"></ion-icon>
                             <span>Fees</span>
                         </a>
+                        <ul class="collapse list-unstyled" id="paymentsSubmenu">
+                            <li>
+                                <a href="{{ url_for('payments.student_payments') }}">View Payments</a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('payments.new_payment') }}">New Payment</a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('payments.verify_transactions') }}">Verify Payments</a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('settings.manage_fee_structure') }}">Fees structure</a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('settings.manage_additional_fees') }}">Manage Add Fees</a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('payments.fee_reports') }}"> Fees Reports</a>
+                            </li>
+                        </ul>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="#staffSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <ion-icon name="people-sharp"></ion-icon>
                             <span>Staff</span>
                         </a>
+                        <ul class="collapse list-unstyled" id="staffSubmenu">
+                            <li>
+                                <a href="#">View Staff</a>
+                            </li>
+                            <li>
+                                <a href="#">Add Staff</a>
+                            </li>
+                        </ul>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="#librarySubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <ion-icon name="library-sharp"></ion-icon>
                             <span>Library</span>
                         </a>
+                        <ul class="collapse list-unstyled" id="librarySubmenu">
+                            <li>
+                                <a href="#">Books</a>
+                            </li>
+                            <li>
+                                <a href="#">Borrowings</a>
+                            </li>
+                        </ul>
                     </li>
                     <li>
-                        <a href="{{ url_for('settings.settings') }}">
+                        <a href="#settingsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <ion-icon name="settings-sharp"></ion-icon>
                             <span>Settings</span>
                         </a>
+                        <ul class="collapse list-unstyled" id="settingsSubmenu">
+                            <li>
+                                <a href="{{ url_for('settings.manage_terms') }}">Manage Terms</a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('settings.migrate_term') }}">Migrate terms</a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('settings.configure_grades') }}">Manage Grades</a>
+                            </li>
+                            <li>
+                                <a href="#">Manage Users</a>
+                            </li>
+                        </ul>
                     </li>
                     <li>
                         <a href="{{ url_for('auth.logout') }}">

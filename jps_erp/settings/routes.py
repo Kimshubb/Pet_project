@@ -20,44 +20,48 @@ def settings():
 @login_required
 def manage_terms():
     form = TermForm()
+
     if form.validate_on_submit():
         term_id = request.form.get('term_id')
         term_name = form.name.data
         term_year = form.year.data
 
-        # Check if term already exists with the same name and year
+        # Check if the term already exists with the same name and year for the current school
         existing_term = Term.query.filter_by(name=term_name, year=term_year, school_id=current_user.school_id).first()
-        
+
         if term_id:
+            # If term_id is provided, update the existing term
             term = Term.query.get(term_id)
             if not term:
                 flash('Term not found.', 'danger')
                 return redirect(url_for('settings.manage_terms'))
         else:
+            # If no term_id, create a new term, but ensure it doesn't already exist for the current school and year
             if existing_term:
-                flash(f"Term already exists for the year {term_year}.", 'danger')
+                flash(f"Term {term_name} already exists for the year {term_year}.", 'danger')
                 return redirect(url_for('settings.manage_terms'))
             term = Term(school_id=current_user.school_id)
             db.session.add(term)
 
+        # If the term is marked as current, unset the current flag for all other terms in the same school
         if form.current.data:
-            # Unset the current term for all terms in the same year
-            Term.query.filter_by(year=form.year.data, school_id=current_user.school_id).update({Term.current: False})
+            Term.query.filter_by(school_id=current_user.school_id).update({Term.current: False})
             db.session.commit()
 
-        term.name = form.name.data
+        # Update or set the term fields
+        term.name = term_name
         term.start_date = form.start_date.data
         term.end_date = form.end_date.data
         term.year = form.year.data
         term.current = form.current.data
         db.session.commit()
         
-        flash('Term has been added/updated!', 'success')
+        flash('Term has been added/updated successfully!', 'success')
         return redirect(url_for('settings.manage_terms'))
 
+    # Retrieve and display all terms specific to the current user's school
     terms = Term.query.filter_by(school_id=current_user.school_id).all()
     return render_template('settings/manage_terms.html', form=form, terms=terms)
-
 
 @settings_bp.route('/fee_structure', methods=['GET', 'POST'])
 @login_required
@@ -182,22 +186,38 @@ def manage_additional_fees():
 @login_required
 def migrate_term():
     form = MigrateTermForm()
-    current_term = Term.query.filter_by(current=True).first()
+
+    # Fetch all terms for the current user's school
+    terms = Term.query.filter_by(school_id=current_user.school_id).all()
+
+    # Populate the term_id choices with terms specific to the school
+    form.term_id.choices = [(term.id, f"{term.name} ({term.year})") for term in terms]
     
+    current_term = Term.query.filter_by(current=True, school_id=current_user.school_id).first()
+
     if form.validate_on_submit():
         term_id = form.term_id.data
-        new_term = Term.query.get_or_404(term_id)
+        new_term = Term.query.filter_by(id=term_id, school_id=current_user.school_id).first_or_404()
         
-        # Migrate active students and their payments to the new term
+        # Unset the current flag for the existing term
+        if current_term:
+            current_term.current = False
+        
+        # Set the new term as the current term
+        new_term.current = True
+        
+        # Migrate active students to the new term
         active_students = Student.query.filter_by(school_id=current_user.school_id, active=True).all()
         for student in active_students:
-            student.current_term_id = term_id
+            student.current_term_id = new_term.id
 
+        # Commit changes to the database
         db.session.commit()
+        
         flash('Active students and their payments have been migrated successfully.', 'success')
         return redirect(url_for('settings.migrate_term'))
 
-    return render_template('settings/migrate_term.html', form=form, current_term=current_term)
+    return render_template('settings/migrate_term.html', form=form, current_term=current_term, terms=terms)
 
 
 @settings_bp.route('/configure_grades', methods=['GET', 'POST'], strict_slashes=False)

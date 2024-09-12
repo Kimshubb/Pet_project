@@ -1,103 +1,112 @@
-    
-    {% extends 'main/dashboard.html' %}
-    {% block content %}
-<head>
-    <title>Student Payments</title>
-    <!-- Bootstrap CSS 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">-->
-</head>
-<div class="container mt-5">
-    <h1>Student Payments</h1>
-    <a href="{{ url_for('payments.new_payment') }}" class="btn btn-success float-left">Add New Payment</a>
-    <form method="GET" action="{{ url_for('payments.student_payments') }}">
-        <label for="grade">Select Grade</label>
-        <select name="grade" id="grade">
-            <option value="all">All Grades</option>
-            {% for grade in grades %}
-                <option value="{{ grade.id }}" {% if request.args.get('grade') == str(grade.id) %}selected{% endif %}>{{ grade.name }}</option>
-            {% endfor %}
-        </select>
-    
-        <label for="stream">Select Stream</label>
-        <select name="stream" id="stream">
-            <option value="all">All Streams</option>
-            {% for stream in streams %}
-                <option value="{{ stream.id }}" {% if request.args.get('stream') == str(stream.id) %}selected{% endif %}>{{ stream.name }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-primary">Filter</button>
-    </form>
-    <table class="table table-striped mt-3">
-        <thead>
-            <tr>
-                <th>Student ID</th>
-                <th>Student Name</th>
-                <th>Grade</th>
-                <th>Carry Forward Balance</th>
-                <th>Total Amount Paid</th>
-                <th>Balance</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for details in student_payment_details %}
-            <tr>
-                <td>{{ details.student.student_id }}</td>
-                <td>{{ details.student.full_name }}</td>
-                <td>{{ details.student.grade.name }}</td>
-                <td>{{ details.cf_balance }}</td>
-                <td>{{ details.total_paid }}</td>
-                <td>{{ details.balance }}</td>
-                <td>
-                    <a href="{{ url_for('payments.print_receipt', student_id=details.student.student_id, payment_id=0) }}" class="btn btn-primary btn-sm">Fee Statement</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <!-- Pagination -->
-    <nav aria-label="Page navigation">
-        <ul class="pagination">
-            {% if students_paginated.has_prev %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('payments.student_payments', page=students_paginated.prev_num) }}{% if request.args %}&{{ request.args|urlencode }}{% endif %}">Previous</a>
-                </li>
-            {% else %}
-                <li class="page-item disabled">
-                    <a class="page-link">Previous</a>
-                </li>
-            {% endif %}
+{% extends 'main/dashboard.html' %}
+{% block title %}Student Payments{% endblock %}
 
-            {% for page_num in students_paginated.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
-                {% if page_num %}
-                    {% if page_num != students_paginated.page %}
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Student Payments</h1>
+            <!-- Add New Payment Button -->
+            <a href="{{ url_for('payments.new_payment') }}" class="btn btn-success mb-3">Add New Payment</a>
+            
+            <!-- Filter Form -->
+            <form method="GET" action="{{ url_for('payments.student_payments') }}" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label for="grade" class="form-label">Select Grade</label>
+                    <select name="grade" id="grade" class="form-select">
+                        <option value="all">All Grades</option>
+                        {% for grade in grades %}
+                            <option value="{{ grade.id }}" {% if request.args.get('grade') == str(grade.id) %}selected{% endif %}>{{ grade.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="stream" class="form-label">Select Stream</label>
+                    <select name="stream" id="stream" class="form-select">
+                        <option value="all">All Streams</option>
+                        {% for stream in streams %}
+                            <option value="{{ stream.id }}" {% if request.args.get('stream') == str(stream.id) %}selected{% endif %}>{{ stream.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </form>
+
+            <!-- Responsive Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Grade</th>
+                            <th>Carry Forward Balance</th>
+                            <th>Total Amount Paid</th>
+                            <th>Balance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for details in student_payment_details %}
+                        <tr>
+                            <td>{{ details.student.student_id }}</td>
+                            <td>{{ details.student.full_name }}</td>
+                            <td>{{ details.student.grade.name }}</td>
+                            <td>{{ details.cf_balance }}</td>
+                            <td>{{ details.total_paid }}</td>
+                            <td>{{ details.balance }}</td>
+                            <td>
+                                <a href="{{ url_for('payments.print_receipt', student_id=details.student.student_id, payment_id=0) }}" class="btn btn-primary btn-sm">Fee Statement</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if students_paginated.has_prev %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('payments.student_payments', page=page_num) }}{% if request.args %}&{{ request.args|urlencode }}{% endif %}">{{ page_num }}</a>
+                            <a class="page-link" href="{{ url_for('payments.student_payments', page=students_paginated.prev_num) }}{% if request.args %}&{{ request.args|urlencode }}{% endif %}">Previous</a>
                         </li>
                     {% else %}
-                        <li class="page-item active">
-                            <a class="page-link">{{ page_num }}</a>
+                        <li class="page-item disabled">
+                            <a class="page-link">Previous</a>
                         </li>
                     {% endif %}
-                {% else %}
-                    <li class="page-item disabled"><a class="page-link">…</a></li>
-                {% endif %}
-            {% endfor %}
 
-            {% if students_paginated.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('payments.student_payments', page=students_paginated.next_num) }}{% if request.args %}&{{ request.args|urlencode }}{% endif %}">Next</a>
-                </li>
-            {% else %}
-                <li class="page-item disabled">
-                    <a class="page-link">Next</a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
+                    {% for page_num in students_paginated.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num != students_paginated.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('payments.student_payments', page=page_num) }}{% if request.args %}&{{ request.args|urlencode }}{% endif %}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item active">
+                                    <a class="page-link">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled"><a class="page-link">…</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if students_paginated.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('payments.student_payments', page=students_paginated.next_num) }}{% if request.args %}&{{ request.args|urlencode }}{% endif %}">Next</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
 </div>
-<!-- Bootstrap JS 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>-->
-
 {% endblock %}

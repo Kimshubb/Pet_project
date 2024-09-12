@@ -66,7 +66,7 @@ class Grade(db.Model):
     
     school = so.relationship('School', back_populates='grades')
     streams = so.relationship('Stream', back_populates='grade', lazy=True)
-    fee_structure = so.relationship('FeeStructure', back_populates='grade', uselist=False)  # One-to-One relationship
+    fee_structure = so.relationship('FeeStructure', back_populates='grade')  # One-to-One relationship
     students = so.relationship('Student', back_populates='grade', lazy=True)
 
 class Stream(db.Model):
@@ -91,6 +91,10 @@ class FeeStructure(db.Model):
     school = so.relationship('School', back_populates='fee_structures')
     term = so.relationship('Term', back_populates='fee_structures')
     grade = so.relationship('Grade', back_populates='fee_structure')
+
+    __table_args__ = (
+        sa.UniqueConstraint('school_id', 'grade_id', name='unique_school_grade'),
+    )
 
 student_additional_fee = sa.Table('student_additional_fee', db.Model.metadata,
     sa.Column('student_id', sa.String(10), sa.ForeignKey('student.student_id'), primary_key=True),

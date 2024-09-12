@@ -1,8 +1,8 @@
-"""initial migration
+"""Initial migration
 
-Revision ID: 0bf4c3743952
+Revision ID: 26fe3842d4f8
 Revises: 
-Create Date: 2024-08-25 07:41:27.237258
+Create Date: 2024-08-29 13:15:58.213582
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0bf4c3743952'
+revision = '26fe3842d4f8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -101,7 +101,8 @@ def upgrade():
     sa.ForeignKeyConstraint(['school_id'], ['school.school_id'], ),
     sa.ForeignKeyConstraint(['term_id'], ['term.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('grade_id')
+    sa.UniqueConstraint('grade_id'),
+    sa.UniqueConstraint('school_id', 'grade_id', name='unique_school_grade')
     )
     op.create_table('stream',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -141,7 +142,7 @@ def upgrade():
     sa.Column('code', sa.String(length=20), nullable=True),
     sa.Column('balance', sa.Float(), nullable=False),
     sa.Column('school_id', sa.Integer(), nullable=False),
-    sa.Column('student_id', sa.String(), nullable=False),
+    sa.Column('student_id', sa.String(length=10), nullable=False),
     sa.Column('term_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['school_id'], ['school.school_id'], ),
     sa.ForeignKeyConstraint(['student_id'], ['student.student_id'], ),
@@ -151,7 +152,7 @@ def upgrade():
     sa.UniqueConstraint('id')
     )
     op.create_table('student_additional_fee',
-    sa.Column('student_id', sa.String(), nullable=False),
+    sa.Column('student_id', sa.String(length=10), nullable=False),
     sa.Column('additional_fee_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['additional_fee_id'], ['additional_fee.id'], ),
     sa.ForeignKeyConstraint(['student_id'], ['student.student_id'], ),
