@@ -3,7 +3,7 @@ from flask import render_template, url_for, flash, redirect, request, session, c
 from jps_erp import db
 from jps_erp.models import FeePayment, Student, Term, MpesaTransaction, Grade, Stream, FeeStructure, AdditionalFee, student_additional_fee, BankStatement
 from jps_erp.forms import Fee_paymentForm, AssociateFeeForm
-from jps_erp.utils import calculate_balance, extract_transactions_from_pdf, get_recent_payments, FeeStructureNotFoundError 
+from jps_erp.utils import calculate_balance, extract_transactions_from_pdf, get_recent_payments, FeeStructureNotFoundError, get_grade_info, get_additional_fees_info, get_additional_fees_comparison, get_payment_method_comparison, get_term_comparison, get_additional_fees_info
 from flask_login import login_required, current_user
 from sqlalchemy import func, and_
 from werkzeug.utils import secure_filename
@@ -14,6 +14,70 @@ from datetime import datetime
 def utility_processor():
     return dict(str=str)
 
+@payments_bp.route('/new_payment', methods=['POST', 'GET'])
+@login_required
+def new_payment():
+    form = Fee_paymentForm()
+
+    if form.validate_on_submit():
+        try:
+            current_term = Term.query.filter_by(current=True, school_id=current_user.school_id).first()
+            if not current_term:
+                raise ValueError('No current term is set. Please set a current term before making payments.')
+
+            student = Student.query.filter_by(student_id=form.student_id.data, school_id=current_user.school_id).first()
+            if not student:
+                raise ValueError('Student not found')
+
+            balance, carry_forward_balance = calculate_balance(student.student_id)
+            
+            # Check if the payment method is Mpesa
+            if form.method.data == 'Mpesa':
+                # Check if the transaction code already exists in the database
+                existing_transaction = MpesaTransaction.query.filter_by(code=form.code.data).first()
+                if existing_transaction:
+                    raise ValueError('This Mpesa transaction code has already been used. Please enter a new code.')
+                
+                # Create a new MpesaTransaction
+                new_mpesa_transaction = MpesaTransaction(
+                    code=form.code.data,
+                    amount=form.amount.data,
+                    verified=False  # Assuming the transaction is verified upon entry
+                )
+                db.session.add(new_mpesa_transaction)
+            
+            new_payment = FeePayment(
+                method=form.method.data,
+                amount=form.amount.data,
+                code=form.code.data if form.method.data in ['Mpesa', 'Bank'] else None,
+                balance=balance - form.amount.data,
+                school_id=current_user.school_id,
+                student_id=student.student_id,
+                pay_date=datetime.today().date(),
+                term_id=current_term.id
+            )
+
+            db.session.add(new_payment)
+            
+            # Update student's carry forward balance
+            student.cf_balance = max(0, balance - form.amount.data)
+            
+            db.session.commit()
+            
+            flash('Payment added successfully', 'success')
+            return redirect(url_for('payments.print_receipt', student_id=student.student_id, payment_id=new_payment.id))
+
+        except ValueError as e:
+            db.session.rollback()
+            flash(str(e), 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An unexpected error occurred: {str(e)}', 'danger')
+            current_app.logger.error(f"Error in new_payment: {str(e)}", exc_info=True)
+
+    payments = FeePayment.query.filter_by(school_id=current_user.school_id).all()
+    return render_template('payments/new_payment.html', form=form, payments=payments)
+"""
 @payments_bp.route('/new_payment', methods=['POST', 'GET'])
 @login_required
 def new_payment():
@@ -103,7 +167,7 @@ def new_payment():
     print("Form did not validate", form.errors)
     payments = FeePayment.query.filter_by(school_id=current_user.school_id).all()
     return render_template('payments/new_payment.html', form=form, payments=payments)
-
+"""
 @payments_bp.route('/student_payments', methods=['GET'])
 @login_required
 def student_payments():
@@ -190,80 +254,31 @@ def recent_payments():
         print(f"Error fetching all recent payments: {e}")
         flash('An error occurred while fetching recent payments.', 'danger')
         return render_template('payments/recent_payments.html', recent_payments=[])
-    
+
 @payments_bp.route('/fee_reports', methods=['GET'])
 @login_required
 def fee_reports():
-    grades = Grade.query.filter_by(school_id=current_user.school_id).all()
-    current_term = Term.query.filter_by(current=True, school_id=current_user.school_id).first()
+    school_id = current_user.school_id
+    current_term = Term.query.filter_by(current=True, school_id=school_id).first()
+    previous_term = Term.query.filter(Term.school_id == school_id, Term.end_date < current_term.start_date).order_by(Term.end_date.desc()).first()
+
+    grades = Grade.query.filter_by(school_id=school_id).all()
 
     grade_details = []
-
     for grade in grades:
-        
-        # Query expected fees for the grade
-        fee_structure = FeeStructure.query.filter_by(
-            grade_id=grade.id,
-            term_id=current_term.id,
-            school_id=current_user.school_id
-        ).first()
+        grade_info = get_grade_info(grade, current_term, school_id)
+        additional_fees_info = get_additional_fees_info(grade, current_term, school_id)
+        grade_details.append({**grade_info, 'additional_fees': additional_fees_info})
 
-        if not fee_structure:
-            continue  # Skip if fee structure not found
+    payment_method_comparison = get_payment_method_comparison(current_term, previous_term, school_id)
+    term_comparison = get_term_comparison(current_term, previous_term, school_id)
+    additional_fees_comparison = get_additional_fees_comparison(current_term, previous_term, school_id)
 
-        # Query number of students in the grade
-        total_students = db.session.query(func.count(Student.student_id)).filter_by(grade_id=grade.id, school_id=current_user.school_id).scalar() or 0
-
-        # Calculate total expected fees
-        expected_fees = (
-            fee_structure.tuition_fee +
-            fee_structure.ass_books +
-            fee_structure.diary_fee +
-            fee_structure.activity_fee +
-            fee_structure.others
-        ) * total_students
-
-        # Query total additional fees and number of occurrences for the grade
-        additional_fees_query = db.session.query(
-            AdditionalFee.fee_name,
-            func.count(AdditionalFee.id),
-            func.sum(AdditionalFee.amount)
-        ).join(Student.additional_fees).filter(
-            Student.grade_id == grade.id, 
-            Student.school_id == current_user.school_id
-            ).group_by(AdditionalFee.fee_name).all()
-
-        # Calculate total additional fees and number of occurrences
-        total_additional_fees = sum(fee_amount for _, _, fee_amount in additional_fees_query)
-        additional_fee_counts = {
-            fee_name: count for fee_name, count, _ in additional_fees_query
-        }
-
-        # Query total fees paid for the grade //query specific to school. 
-        #to do: adjust grade ids to be unique to schools
-        total_fees_paid = db.session.query(func.sum(FeePayment.amount)).join(
-            Student, FeePayment.student_id == Student.student_id
-        ).filter(
-            Student.grade_id == grade.id,
-            Student.school_id == current_user.school_id,
-            FeePayment.term_id == current_term.id
-        ).scalar() or 0.0
-
-
-        # Calculate total balance
-        total_balance = expected_fees + total_additional_fees - total_fees_paid
-
-        grade_details.append({
-            'grade_name': grade.name,
-            'expected_fees': expected_fees,
-            'total_additional_fees': total_additional_fees,
-            'additional_fee_counts': additional_fee_counts,
-            'total_fees_paid': total_fees_paid,
-            'total_balance': total_balance,
-            'total_students': total_students
-        })
-
-    return render_template('payments/fee_reports.html', grade_details=grade_details)
+    return render_template('payments/fee_reports.html',
+                           grade_details=grade_details,
+                           payment_method_comparison=payment_method_comparison,
+                           term_comparison=term_comparison,
+                           additional_fees_comparison=additional_fees_comparison)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf'}
@@ -313,62 +328,6 @@ def upload_statement():
 
     print("Debug: GET request detected")
     return render_template('payments/verify_transactions.html')
-'''
-@payments_bp.route('/verify_transactions', methods=['GET', 'POST'])
-@login_required
-def verify_transactions():
-    print("Debug: Inside verify_transactions route")
-
-    # Retrieve extracted transactions from the session
-    extracted_transactions = session.get('extracted_transactions', [])
-    print(f"Debug: Extracted transactions from session: {extracted_transactions}")
-
-    if request.method == 'POST':
-        print("Debug: POST request detected for verification")
-
-        # Retrieve all unverified transactions from the database
-        unverified_db_transactions = MpesaTransaction.query.filter_by(verified=False).all()
-        print(f"Debug: Unverified transactions in DB: {unverified_db_transactions}")
-
-        # Initialize counters and lists
-        verified_count = 0
-        unverified_transactions = []
-
-        # Iterate over each extracted transaction
-        for extracted_transaction in extracted_transactions:
-            code = extracted_transaction['code']
-            amount = extracted_transaction['amount']
-            print(f"Debug: Verifying transaction - Code: {code}, Amount: {amount}")
-
-            # Check if the extracted transaction matches any unverified transaction in the database
-            match_found = False
-            for db_transaction in unverified_db_transactions:
-                if db_transaction.code == code and db_transaction.amount == amount:
-                    # Mark the transaction as verified
-                    db_transaction.verified = True
-                    db.session.commit()
-                    verified_count += 1
-                    match_found = True
-                    print(f"Debug: Transaction verified and updated - Code: {code}, Amount: {amount}")
-                    break
-
-            if not match_found:
-                # Check for the student details related to the unverified transaction
-                student_transaction = MpesaTransaction.query.filter_by(code=code).first()
-                student = Student.query.get(student_transaction.student_id) if student_transaction else None
-                unverified_transactions.append({
-                    'code': code,
-                    'amount': amount,
-                    'student': student.full_name if student else 'Unknown Student'
-                })
-                print(f"Debug: Unverified transaction - Code: {code}, Amount: {amount}, Student: {student.full_name if student else 'Unknown Student'}")
-
-        print(f"Debug: Verification complete - Verified Count: {verified_count}, Unverified Transactions: {unverified_transactions}")
-        return render_template('payments/verify_transactions.html', verified_count=verified_count, unverified_transactions=unverified_transactions)
-
-    print("Debug: GET request detected for verification")
-    return render_template('payments/verify_transactions.html')'''
-
 
 @payments_bp.route('/verify_transactions', methods=['GET', 'POST'])
 @login_required

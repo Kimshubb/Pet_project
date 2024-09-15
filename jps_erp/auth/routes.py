@@ -3,14 +3,66 @@ from flask import render_template, url_for, flash, redirect, request, session, j
 from jps_erp import db
 from jps_erp.models import User, School
 from jps_erp.utils import register_user, send_password_reset_email, send_async_email_task
-from jps_erp.forms import User_registrationForm, Sign_inForm, PasswordResetRequestForm, ResetPasswordForm  
-from flask_login import login_user, current_user, logout_user  
+from jps_erp.forms import User_registrationForm, Sign_inForm, PasswordResetRequestForm, ResetPasswordForm, UserCreationForm  
+from flask_login import login_user, current_user, logout_user, login_required 
 import sqlalchemy as sa
 from redis import Redis
 from flask import current_app as app
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from sqlalchemy.exc import IntegrityError
+from jps_erp.decoraters import admin_required
 
+@auth_bp.route('/manage_users')
+@login_required
+@admin_required
+def manage_users():
+    users = User.query.filter_by(school_id=current_user.school_id).all()
+    form = UserCreationForm()
+    return render_template('admin/manage_users.html', users=users, form=form)
+
+@auth_bp.route('/create_user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_user():
+    form = UserCreationForm()
+    if form.validate_on_submit():
+        school = School.query.get(current_user.school_id)
+        if User.query.filter_by(school_id=school.school_id).count() >= 5:
+            return jsonify(success=False, errors={'general': ['Maximum number of users (5) reached for this school.']})
+        
+        try:
+            new_user = User(
+                username=form.username.data,
+                email=form.email.data,
+                role=form.role.data,
+                school_id=school.school_id,
+                is_active=True
+            )
+            new_user.set_password(form.password.data)
+            db.session.add(new_user)
+            db.session.commit()
+            return jsonify(success=True)
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify(success=False, errors={'general': ['Username or email already exists.']})
+    return jsonify(success=False, errors=form.errors)
+
+
+@auth_bp.route('/toggle_user/<int:user_id>')
+@login_required
+@admin_required
+def toggle_user(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.school_id != current_user.school_id:
+        flash('You can only manage users from your school.', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    
+    user.is_active = not user.is_active
+    db.session.commit()
+    status = 'activated' if user.is_active else 'deactivated'
+    flash(f'User {user.username} has been {status}.', 'success')
+    return redirect(url_for('admin.manage_users'))
 
 
 @auth_bp.route("/", strict_slashes=False)
@@ -35,7 +87,8 @@ def get_school_contacts():
         return jsonify({'contacts': school.contacts})
     else:
         return jsonify({'contacts': None})
-
+        
+"""
 @auth_bp.route("/register", methods=['GET', 'POST'], strict_slashes=False)
 def register():
     form = User_registrationForm()
@@ -55,7 +108,7 @@ def register():
         flash(f'Account successfully created for {form.username.data}!', 'success')
         return redirect(url_for('auth.login'))
 
-    return render_template('auth/register.html', form=form)
+    return render_template('auth/register.html', form=form)"""
 
 @auth_bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():

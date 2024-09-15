@@ -270,3 +270,157 @@ def paid_via_method_today(school_id, method):
     return db.session.query(func.sum(FeePayment.amount))\
         .filter(FeePayment.school_id == school_id, FeePayment.method == method, func.date(FeePayment.pay_date) == today)\
         .scalar() or 0.0
+
+def get_grade_info(grade, current_term, school_id):
+    fee_structure = FeeStructure.query.filter_by(
+        grade_id=grade.id,
+        term_id=current_term.id,
+        school_id=school_id
+    ).first()
+
+    total_students = Student.query.filter_by(grade_id=grade.id, school_id=school_id).count()
+
+    expected_fees = (
+        fee_structure.tuition_fee +
+        fee_structure.ass_books +
+        fee_structure.diary_fee +
+        fee_structure.activity_fee +
+        fee_structure.others
+    ) * total_students if fee_structure else 0
+
+    total_fees_paid = db.session.query(func.sum(FeePayment.amount)).join(
+        Student, FeePayment.student_id == Student.student_id
+    ).filter(
+        Student.grade_id == grade.id,
+        Student.school_id == school_id,
+        FeePayment.term_id == current_term.id
+    ).scalar() or 0.0
+
+    return {
+        'grade_name': grade.name,
+        'expected_fees': expected_fees,
+        'total_fees_paid': total_fees_paid,
+        'total_balance': expected_fees - total_fees_paid,
+        'total_students': total_students
+    }
+
+def get_additional_fees_info(grade, current_term, school_id):
+    additional_fees = db.session.query(
+        AdditionalFee.fee_name,
+        func.count(Student.student_id).label('student_count'),
+        func.sum(AdditionalFee.amount).label('total_amount'),
+        func.group_concat(Student.full_name).label('student_names')
+    ).join(
+        AdditionalFee.students
+    ).filter(
+        Student.grade_id == grade.id,
+        Student.school_id == school_id,
+        Student.current_term_id == current_term.id
+    ).group_by(AdditionalFee.id).all()
+
+    return [
+        {
+            'fee_name': fee.fee_name,
+            'student_count': fee.student_count,
+            'total_amount': fee.total_amount,
+            'students': fee.student_names.split(',')
+        }
+        for fee in additional_fees
+    ]
+
+def get_payment_method_comparison(current_term, previous_term, school_id):
+    def get_payment_methods(term):
+        return db.session.query(
+            FeePayment.method,
+            func.sum(FeePayment.amount).label('total_amount')
+        ).filter(
+            FeePayment.term_id == term.id,
+            FeePayment.school_id == school_id
+        ).group_by(FeePayment.method).all()
+
+    # Get current term payment methods
+    current_methods = get_payment_methods(current_term)
+    current_total = sum(method.total_amount for method in current_methods)
+
+    # Initialize previous methods to empty if no previous term exists
+    if previous_term:
+        previous_methods = get_payment_methods(previous_term)
+        previous_total = sum(method.total_amount for method in previous_methods)
+    else:
+        previous_methods = []
+        previous_total = 0
+
+    return {
+        'current': {method.method: (method.total_amount / current_total) * 100 for method in current_methods},
+        'previous': {method.method: (method.total_amount / previous_total) * 100 for method in previous_methods} if previous_total > 0 else {}
+    }
+
+def get_term_comparison(current_term, previous_term, school_id):
+    def get_term_data(term):
+        if term is None:
+            return {}
+
+        grades = Grade.query.filter_by(school_id=school_id).all()
+        term_data = {}
+        for grade in grades:
+            total_fees = db.session.query(func.sum(FeePayment.amount)).join(
+                Student, FeePayment.student_id == Student.student_id
+            ).filter(
+                Student.grade_id == grade.id,
+                Student.school_id == school_id,
+                FeePayment.term_id == term.id
+            ).scalar() or 0.0
+
+            additional_fees = db.session.query(
+                func.sum(AdditionalFee.amount).label('total_amount'),
+                func.count(Student.student_id).label('student_count')
+            ).join(
+                AdditionalFee.students
+            ).filter(
+                Student.grade_id == grade.id,
+                Student.school_id == school_id,
+                Student.current_term_id == term.id
+            ).first()
+
+            term_data[grade.name] = {
+                'total_fees': total_fees,
+                'additional_fees': additional_fees.total_amount or 0,
+                'additional_fees_count': additional_fees.student_count or 0
+            }
+        return term_data
+
+    return {
+        'current': get_term_data(current_term),
+        'previous': get_term_data(previous_term)
+    }
+
+def get_additional_fees_comparison(current_term, previous_term, school_id):
+    def get_additional_fees_data(term):
+        # If term is None, return an empty dictionary
+        if term is None:
+            return {}
+            
+        grades = Grade.query.filter_by(school_id=school_id).all()
+        term_data = {}
+        for grade in grades:
+            additional_fees = db.session.query(
+                func.sum(AdditionalFee.amount).label('total_amount'),
+                func.count(Student.student_id).label('student_count')
+            ).join(
+                AdditionalFee.students
+            ).filter(
+                Student.grade_id == grade.id,
+                Student.school_id == school_id,
+                Student.current_term_id == term.id
+            ).first()
+
+            term_data[grade.name] = {
+                'total_amount': additional_fees.total_amount or 0,
+                'student_count': additional_fees.student_count or 0
+            }
+        return term_data
+
+    return {
+        'current': get_additional_fees_data(current_term),
+        'previous': get_additional_fees_data(previous_term)
+    }

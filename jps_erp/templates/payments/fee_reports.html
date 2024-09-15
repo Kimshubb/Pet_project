@@ -1,47 +1,343 @@
 {% extends 'main/dashboard.html' %}
 
-{% block title %}Total Balances per Grade{% endblock %}
+{% block title %}Fee Reports{% endblock %}
 
 {% block content %}
-    <title>Total Balances per Grade</title> 
+<div class="container-fluid mt-4">
+    <h1 class="text-center mb-4">Fee Reports</h1>
 
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Total Balances per Grade</h1>
-
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>Grade</th>
-                        <th>Expected Fees</th>
-                        <th>Total Additional Fees</th>
-                        <th>Additional Fee Counts</th>
-                        <th>Total Fees Paid</th>
-                        <th>Total Balance</th>
-                        <th>Total Students</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for grade in grade_details %}
-                    <tr>
-                        <td>{{ grade.grade_name }}</td>
-                        <td>{{ grade.expected_fees }}</td>
-                        <td>{{ grade.total_additional_fees }}</td>
-                        <td>
-                            <ul>
-                                {% for fee_name, count in grade.additional_fee_counts.items() %}
-                                <li>{{ fee_name }}: {{ count }}</li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-                        <td>{{ grade.total_fees_paid }}</td>
-                        <td>{{ grade.total_balance }}</td>
-                        <td>{{ grade.total_students }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Grade Details -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Grade Details</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Grade</th>
+                            <th>Expected Fees</th>
+                            <th>Total Fees Paid</th>
+                            <th>Total Balance</th>
+                            <th>Total Students</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grade in grade_details %}
+                        <tr>
+                            <td>{{ grade.grade_name }}</td>
+                            <td>{{ grade.expected_fees | round(2) }}</td>
+                            <td>{{ grade.total_fees_paid | round(2) }}</td>
+                            <td>{{ grade.total_balance | round(2) }}</td>
+                            <td>{{ grade.total_students }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
+    <!-- Additional Fees -->
+    {% for grade in grade_details %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Additional Fees - {{ grade.grade_name }}</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fee Name</th>
+                            <th>Student Count</th>
+                            <th>Total Amount</th>
+                            <th>Students</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in grade.additional_fees %}
+                        <tr>
+                            <td>{{ fee.fee_name }}</td>
+                            <td>{{ fee.student_count }}</td>
+                            <td>{{ fee.total_amount | round(2) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#students{{ loop.index }}{{ grade.grade_name | replace(' ', '') }}" aria-expanded="false">
+                                    Show Students
+                                </button>
+                                <div class="collapse mt-2" id="students{{ loop.index }}{{ grade.grade_name | replace(' ', '') }}">
+                                    <ul class="list-group">
+                                        {% for student in fee.students %}
+                                        <li class="list-group-item">{{ student }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Payment Method Comparison -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Payment Method Comparison</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <canvas id="currentTermChart"></canvas>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <canvas id="previousTermChart"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h3>Current Term</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for method, percentage in payment_method_comparison.current.items() %}
+                                <tr>
+                                    <td>{{ method }}</td>
+                                    <td>{{ percentage | round(2) }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h3>Previous Term</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for method, percentage in payment_method_comparison.previous.items() %}
+                                <tr>
+                                    <td>{{ method }}</td>
+                                    <td>{{ percentage | round(2) }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Term Comparison -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Term Comparison</h2>
+        </div>
+        <div class="card-body">
+            <canvas id="termComparisonChart" class="mb-4"></canvas>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Grade</th>
+                            <th>Current Term Fees</th>
+                            <th>Previous Term Fees</th>
+                            <th>Current Additional Fees</th>
+                            <th>Previous Additional Fees</th>
+                            <th>Current Additional Fees Count</th>
+                            <th>Previous Additional Fees Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grade, current_data in term_comparison.current.items() %}
+                        {% set previous_data = term_comparison.previous.get(grade, {}) %}
+                        <tr>
+                            <td>{{ grade }}</td>
+                            <td>{{ current_data.total_fees | round(2) }}</td>
+                            <td>{{ previous_data.total_fees | default(0) | round(2) }}</td>
+                            <td>{{ current_data.additional_fees | round(2) }}</td>
+                            <td>{{ previous_data.additional_fees | default(0) | round(2) }}</td>
+                            <td>{{ current_data.additional_fees_count }}</td>
+                            <td>{{ previous_data.additional_fees_count | default(0) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Fees Comparison -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Additional Fees Comparison</h2>
+        </div>
+        <div class="card-body">
+            <canvas id="additionalFeesChart" class="mb-4"></canvas>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Grade</th>
+                            <th>Current Term Amount</th>
+                            <th>Previous Term Amount</th>
+                            <th>Current Term Count</th>
+                            <th>Previous Term Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grade, current_data in additional_fees_comparison.current.items() %}
+                        {% set previous_data = additional_fees_comparison.previous.get(grade, {}) %}
+                        <tr>
+                            <td>{{ grade }}</td>
+                            <td>{{ current_data.total_amount | round(2) }}</td>
+                            <td>{{ previous_data.total_amount | default(0) | round(2) }}</td>
+                            <td>{{ current_data.student_count }}</td>
+                            <td>{{ previous_data.student_count | default(0) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Payment Method Comparison Charts
+function createPieChart(elementId, data, title) {
+    const ctx = document.getElementById(elementId).getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                data: Object.values(data),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                ],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: title
+                }
+            }
+        }
+    });
+}
+
+createPieChart('currentTermChart', {{ payment_method_comparison.current | tojson }}, 'Current Term Payment Methods');
+createPieChart('previousTermChart', {{ payment_method_comparison.previous | tojson }}, 'Previous Term Payment Methods');
+
+// Term Comparison Chart
+const termComparisonCtx = document.getElementById('termComparisonChart').getContext('2d');
+new Chart(termComparisonCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ term_comparison.current.keys() | list | tojson }},
+        datasets: [
+            {
+                label: 'Current Term Fees',
+                data: {{ term_comparison.current.values() | map(attribute='total_fees') | list | tojson }},
+                backgroundColor: 'rgba(255, 99, 132, 0.8)',
+            },
+            {
+                label: 'Previous Term Fees',
+                data: {{ term_comparison.previous.values() | map(attribute='total_fees') | list | tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            },
+            {
+                label: 'Current Additional Fees',
+                data: {{ term_comparison.current.values() | map(attribute='additional_fees') | list | tojson }},
+                backgroundColor: 'rgba(255, 206, 86, 0.8)',
+            },
+            {
+                label: 'Previous Additional Fees',
+                data: {{ term_comparison.previous.values() | map(attribute='additional_fees') | list | tojson }},
+                backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                stacked: true,
+            },
+            y: {
+                stacked: true
+            }
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Term Comparison'
+            },
+        }
+    }
+});
+
+// Additional Fees Comparison Chart
+const additionalFeesCtx = document.getElementById('additionalFeesChart').getContext('2d');
+new Chart(additionalFeesCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ additional_fees_comparison.current.keys() | list | tojson }},
+        datasets: [
+            {
+                label: 'Current Term Amount',
+                data: {{ additional_fees_comparison.current.values() | map(attribute='total_amount') | list | tojson }},
+                backgroundColor: 'rgba(255, 99, 132, 0.8)',
+            },
+            {
+                label: 'Previous Term Amount',
+                data: {{ additional_fees_comparison.previous.values() | map(attribute='total_amount') | list | tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Additional Fees Comparison'
+            },
+        }
+    }
+});
+</script>
 {% endblock %}

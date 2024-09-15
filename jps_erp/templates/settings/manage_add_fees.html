@@ -1,37 +1,62 @@
 {% extends "main/dashboard.html" %}
 
 {% block content %}
-<div class="container">
-    <h2>Manage Additional Fees</h2>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}" role="alert">
-                    {{ message }}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <div class="p-3 mb-4 bg-light rounded">
+                <!-- Page Title -->
+                <h2>Manage Additional Fees</h2>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Form for Adding Fees -->
+                <form method="POST" action="{{ url_for('settings.manage_additional_fees') }}" class="row g-3 mb-4">
+                    {{ form.hidden_tag() }}
+                    <div class="col-md-6">
+                        <label for="fee_name" class="form-label">{{ form.fee_name.label }}</label>
+                        {{ form.fee_name(class="form-control") }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="amount" class="form-label">{{ form.amount.label }}</label>
+                        {{ form.amount(class="form-control") }}
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+                    </div>
+                </form>
+                
+                <!-- Existing Additional Fees -->
+                <h3>Existing Additional Fees</h3>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fee Name</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fee in additional_fees %}
+                            <tr>
+                                <td>{{ fee.fee_name }}</td>
+                                <td>{{ fee.amount }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    <form method="POST" action="{{ url_for('settings.manage_additional_fees') }}">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            <label for="fee_name">{{ form.fee_name.label }}</label>
-            {{ form.fee_name(class="form-control") }}
+            </div>
         </div>
-        <div class="form-group">
-            <label for="amount">{{ form.amount.label }}</label>
-            {{ form.amount(class="form-control") }}
-        </div>
-        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
-    </form>
-    <hr>
-    <h3>Existing Additional Fees</h3>
-    <ul class="list-group">
-        {% for fee in additional_fees %}
-        <li class="list-group-item">
-            {{ fee.fee_name }}: {{ fee.amount }}
-        </li>
-        {% endfor %}
-    </ul>
+    </div>
 </div>
 {% endblock %}
