@@ -18,9 +18,14 @@ class User(UserMixin, db.Model):
     role = sa.Column(sa.String(20), nullable=False)
     password_hash = sa.Column(sa.String(256), nullable=False)
     school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
-    
+    is_active = db.Column(db.Boolean, default=True)
+
     school = so.relationship('School', back_populates='users')
     audits = so.relationship('Audit', back_populates='user', lazy=True)
+
+    def is_active(self):
+        # This method is used by Flask-Login
+        return self.is_active
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

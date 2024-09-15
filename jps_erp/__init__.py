@@ -78,6 +78,9 @@ def create_app():
     app.register_blueprint(payments_bp)
     app.register_blueprint(settings_bp)
 
+    from jps_erp.commands import register_commands
+    register_commands(app)
+
     return app
 
 def create_celery_app(app=None):

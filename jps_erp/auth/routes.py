@@ -19,7 +19,7 @@ from jps_erp.decoraters import admin_required
 def manage_users():
     users = User.query.filter_by(school_id=current_user.school_id).all()
     form = UserCreationForm()
-    return render_template('admin/manage_users.html', users=users, form=form)
+    return render_template('auth/manage_users.html', users=users, form=form)
 
 @auth_bp.route('/create_user', methods=['GET', 'POST'])
 @login_required
@@ -56,13 +56,13 @@ def toggle_user(user_id):
     user = User.query.get_or_404(user_id)
     if user.school_id != current_user.school_id:
         flash('You can only manage users from your school.', 'danger')
-        return redirect(url_for('admin.manage_users'))
+        return redirect(url_for('auth.manage_users'))
     
     user.is_active = not user.is_active
     db.session.commit()
     status = 'activated' if user.is_active else 'deactivated'
     flash(f'User {user.username} has been {status}.', 'success')
-    return redirect(url_for('admin.manage_users'))
+    return redirect(url_for('auth.manage_users'))
 
 
 @auth_bp.route("/", strict_slashes=False)
