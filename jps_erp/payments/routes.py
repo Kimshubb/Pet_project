@@ -9,6 +9,9 @@ from sqlalchemy import func, and_
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
+import qrcode
+import io
+import base64
 
 @payments_bp.context_processor
 def utility_processor():
@@ -218,7 +221,7 @@ def student_payments():
                            students_paginated=students_paginated, 
                            selected_stream=stream_filter)
 
-
+"""
 @payments_bp.route('/student/<string:student_id>/receipt/<int:payment_id>', methods=['GET'])
 @login_required
 def print_receipt(student_id, payment_id):
@@ -237,7 +240,37 @@ def print_receipt(student_id, payment_id):
         balance, cf_balance = calculate_balance(student_id)
 
         return render_template('payments/receipt.html', student=student, payment=payment, balance=balance, cf_balance=cf_balance, current_term=current_term, school=school)
+"""
+@payments_bp.route('/student/<string:student_id>/receipt/<int:payment_id>', methods=['GET'])
+@login_required
+def print_receipt(student_id, payment_id):
+    student = Student.query.get_or_404(student_id)
+    current_term = Term.query.filter_by(current=True, school_id=current_user.school_id).first()
+    school = current_user.school
 
+    if payment_id == 0:  # Generate a fee statement instead of a single payment receipt
+        payments = FeePayment.query.filter_by(student_id=student_id).order_by(FeePayment.pay_date).all()
+        total_paid = sum(payment.amount for payment in payments)
+        balance, cf_balance = calculate_balance(student_id)
+
+        return render_template('payments/fee_statement.html', student=student, payments=payments, balance=balance, cf_balance=cf_balance, total_paid=total_paid, current_term=current_term, school=school)
+    else:
+        payment = FeePayment.query.get_or_404(payment_id)
+        balance, cf_balance = calculate_balance(student_id)
+
+        # Generate QR code
+        fee_statement_url = url_for('payments.print_receipt', student_id=student_id, payment_id=0, _external=True)
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(fee_statement_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        # Convert QR code image to base64 string
+        buffered = io.BytesIO()
+        img.save(buffered, format="PNG")
+        qr_code = base64.b64encode(buffered.getvalue()).decode()
+
+        return render_template('payments/receipt.html', student=student, payment=payment, balance=balance, cf_balance=cf_balance, current_term=current_term, school=school, qr_code=qr_code)
 
 @payments_bp.route('/recent_payments', strict_slashes=False)
 @login_required

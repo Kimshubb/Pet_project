@@ -89,7 +89,7 @@
                                                 {{ 'Mark Inactive' if student.active else 'Mark Active' }}
                                             </button>
                                         </form>
-                                        <a href="/students/{{ student.student_id }}/delete" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete?')">Delete</a>
+                                        <a href="{{ url_for('payments.add_additional_fee', student_id=student.student_id) }}" class="btn btn-primary btn-sm">Add Fee</a>
                                     </td>
                                 </tr>
                             {% endfor %}
