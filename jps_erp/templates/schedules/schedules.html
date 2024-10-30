@@ -1,0 +1,277 @@
+{% extends "main/dashboard.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Timetable Management</h1>
+
+    <!-- Main navigation -->
+    <nav>
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="assign-teachers-tab" data-bs-toggle="tab" data-bs-target="#assign-teachers" type="button" role="tab" aria-controls="assign-teachers" aria-selected="true">Assign Teachers</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="assign-lessons-tab" data-bs-toggle="tab" data-bs-target="#assign-lessons" type="button" role="tab" aria-controls="assign-lessons" aria-selected="false">Assign Lessons</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="generate-timetable-tab" data-bs-toggle="tab" data-bs-target="#generate-timetable" type="button" role="tab" aria-controls="generate-timetable" aria-selected="false">Generate Timetable</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="view-timetables-tab" data-bs-toggle="tab" data-bs-target="#view-timetables" type="button" role="tab" aria-controls="view-timetables" aria-selected="false">View Timetables</button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Tab content -->
+    <div class="tab-content mt-3" id="myTabContent">
+        <!-- Assign Teachers Tab -->
+        <div class="tab-pane fade show active" id="assign-teachers" role="tabpanel" aria-labelledby="assign-teachers-tab">
+            <h2>Assign Teachers</h2>
+            <form id="assign-teachers-form">
+                <div class="mb-3">
+                    <label for="education-level" class="form-label">Select Education Level</label>
+                    <select class="form-select" id="education-level" name="education_level" required>
+                        <!-- Education levels will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="teachers" class="form-label">Select Teachers</label>
+                    <select multiple class="form-select" id="teachers" name="teachers" required>
+                        <!-- Teachers will be populated dynamically -->
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Assign Teachers</button>
+            </form>
+        </div>
+
+        <!-- Assign Lessons Tab -->
+        <div class="tab-pane fade" id="assign-lessons" role="tabpanel" aria-labelledby="assign-lessons-tab">
+            <h2>Assign Lessons</h2>
+            <form id="assign-lessons-form">
+                <div class="mb-3">
+                    <label for="education-level-lesson" class="form-label">Select Education Level</label>
+                    <select class="form-select" id="education-level-lesson" required>
+                        <!-- Education levels will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="stream-select-lesson" class="form-label">Select Stream</label>
+                    <select class="form-select" id="stream-select-lesson" required>
+                        <!-- Streams will be populated dynamically based on selected education level -->
+                    </select>
+                </div>
+                <div id="lessons-assignments">
+                    <!-- Subjects and lesson assignments will be populated dynamically -->
+                </div>
+                <button type="submit" class="btn btn-primary">Assign Lessons</button>
+            </form>
+        </div>
+
+        <!-- Generate Timetable Tab -->
+        <div class="tab-pane fade" id="generate-timetable" role="tabpanel" aria-labelledby="generate-timetable-tab">
+            <h2>Generate Timetable</h2>
+            <form id="generate-timetable-form">
+                <div class="mb-3">
+                    <label for="education-level-timetable" class="form-label">Select Education Level</label>
+                    <select class="form-select" id="education-level-timetable" required>
+                        <!-- Education levels will be populated dynamically -->
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Generate Timetable</button>
+            </form>
+        </div>
+
+        <!-- View Timetables Tab -->
+        <div class="tab-pane fade" id="view-timetables" role="tabpanel" aria-labelledby="view-timetables-tab">
+            <h2>View Timetables</h2>
+            <div class="mb-3">
+                <label for="education-level-view" class="form-label">Select Education Level</label>
+                <select class="form-select" id="education-level-view" required>
+                    <!-- Education levels will be populated dynamically -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="stream-select-view" class="form-label">Select Stream</label>
+                <select class="form-select" id="stream-select-view" required>
+                    <!-- Streams will be populated dynamically based on selected education level -->
+                </select>
+            </div>
+            <button id="view-timetable-btn" class="btn btn-primary">View Timetable</button>
+        </div>
+    </div>
+</div>
+
+<!-- Timetable Modal -->
+<div class="modal fade" id="timetableModal" tabindex="-1" aria-labelledby="timetableModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="timetableModalLabel">Timetable</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-timetable-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const educationLevelSelects = document.querySelectorAll('[id^="education-level"]');
+    const teacherSelect = document.getElementById('teachers');
+    const streamSelectLesson = document.getElementById('stream-select-lesson');
+    const streamSelectView = document.getElementById('stream-select-view');
+    const lessonsAssignmentsContainer = document.getElementById('lessons-assignments');
+    const assignTeachersForm = document.getElementById('assign-teachers-form');
+    const assignLessonsForm = document.getElementById('assign-lessons-form');
+    const generateTimetableForm = document.getElementById('generate-timetable-form');
+    const viewTimetableBtn = document.getElementById('view-timetable-btn');
+    const timetableContainer = document.getElementById('modal-timetable-container');
+
+    const state = {
+        educationLevels: [],
+        streams: [],
+        subjects: {}
+    };
+
+    function fetchEducationLevels() {
+        return fetch('/get_education_levels')
+            .then(response => response.json())
+            .then(levels => {
+                state.educationLevels = levels;
+                educationLevelSelects.forEach(select => populateSelect(select, levels));
+            })
+            .catch(error => console.error('Error fetching education levels:', error));
+    }
+
+    function fetchAllTeachers() {
+        fetch('/get_all_teachers')
+            .then(response => response.json())
+            .then(teachers => {
+                allTeachersSelect.innerHTML = ''; // Clear existing options
+                teachers.forEach(teacher => {
+                    const option = document.createElement('option');
+                    option.value = teacher.id;
+                    option.textContent = teacher.name;
+                    allTeachersSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching all teachers:', error));
+    }
+
+    function fetchStreams(educationLevel) {
+        fetch(`/get_streams/${educationLevel}`)
+            .then(response => response.json())
+            .then(streams => {
+                state.streams = streams;
+                populateSelect(streamSelectLesson, streams);
+                populateSelect(streamSelectView, streams);
+            })
+            .catch(error => console.error('Error fetching streams:', error));
+    }
+
+    function fetchSubjectsAndLessons(educationLevel) {
+        fetch(`/get_subjects_and_lessons/${educationLevel}`)
+            .then(response => response.json())
+            .then(data => {
+                state.subjects = data.lessons;
+                populateLessonsAssignments(data.subjects);
+            })
+            .catch(error => console.error('Error fetching subjects and lessons:', error));
+    }
+
+    function populateSelect(selectElement, data) {
+        selectElement.innerHTML = '<option value="">Select...</option>';
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item.charAt(0).toUpperCase() + item.slice(1).replace('_', ' ');
+            selectElement.appendChild(option);
+        });
+    }
+
+    function populateLessonsAssignments(subjects) {
+        lessonsAssignmentsContainer.innerHTML = '';
+        for (const [subject, count] of Object.entries(subjects)) {
+            const div = document.createElement('div');
+            div.className = 'mb-3';
+            div.innerHTML = `
+                <label>${subject} (Lessons per week: ${count})</label>
+                <input type="number" class="form-control" name="${subject}" min="0" max="${count}" value="${count}">
+            `;
+            lessonsAssignmentsContainer.appendChild(div);
+        }
+    }
+
+    assignTeachersForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const educationLevel = document.getElementById('education-level').value;
+        const selectedTeachers = Array.from(teacherSelect.selectedOptions).map(option => option.value);
+
+        if (!educationLevel || selectedTeachers.length === 0) {
+            alert('Please select an education level and at least one teacher.');
+            return;
+        }
+
+        // Send assignment to the backend
+    });
+
+    assignLessonsForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const educationLevel = document.getElementById('education-level-lesson').value;
+        const streamId = streamSelectLesson.value;
+        if (!educationLevel || !streamId) {
+            alert('Please select an education level and a stream.');
+            return;
+        }
+
+        const assignments = Array.from(assignLessonsForm.elements)
+            .filter(el => el.type === 'number')
+            .map(input => ({
+                subject: input.name,
+                lessons: parseInt(input.value, 10)
+            }));
+
+        fetch('/assign_lessons', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                education_level: educationLevel,
+                stream_id: streamId,
+                assignments
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Lessons assigned successfully.');
+            } else {
+                alert(data.error || 'Error assigning lessons.');
+            }
+        })
+        .catch(error => console.error('Error assigning lessons:', error));
+    });
+
+    viewTimetableBtn.addEventListener('click', function() {
+        const educationLevel = document.getElementById('education-level-view').value;
+        const streamId = streamSelectView.value;
+        if (!educationLevel || !streamId) {
+            alert('Please select an education level and a stream.');
+            return;
+        }
+
+        fetch(`/get_timetable/${streamId}`)
+            .then(response => response.json())
+            .then(data => displayTimetable(data))
+            .catch(error => console.error('Error fetching timetable:', error));
+    });
+
+    function displayTimetable(timetableData) {
+        // Implementation to display timetable in the modal
+    }
+
+    fetchEducationLevels();
+});
+</script>
+
+{% endblock %}

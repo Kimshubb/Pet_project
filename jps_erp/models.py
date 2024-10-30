@@ -22,6 +22,7 @@ class User(UserMixin, db.Model):
 
     school = so.relationship('School', back_populates='users')
     audits = so.relationship('Audit', back_populates='user', lazy=True)
+    teacher_profile = so.relationship('TeacherProfile', back_populates='user', uselist=False)
 
     def is_active(self):
         # This method is used by Flask-Login
@@ -63,6 +64,8 @@ class School(db.Model):
     audits = so.relationship('Audit', back_populates='school', lazy=True)
     additional_fees = so.relationship('AdditionalFee', back_populates='school', lazy=True)
     grades = so.relationship('Grade', back_populates='school', lazy=True)
+    teachers = so.relationship('TeacherProfile', back_populates='school', lazy=True)
+    timetable_entries = so.relationship('TimeTable', back_populates='school')
 
 class Grade(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
@@ -73,6 +76,7 @@ class Grade(db.Model):
     streams = so.relationship('Stream', back_populates='grade', lazy=True)
     fee_structure = so.relationship('FeeStructure', back_populates='grade')  # One-to-One relationship
     students = so.relationship('Student', back_populates='grade', lazy=True)
+    subjects = so.relationship('Subject', back_populates='grade')
 
 class Stream(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
@@ -81,6 +85,8 @@ class Stream(db.Model):
     
     grade = so.relationship('Grade', back_populates='streams')
     students = so.relationship('Student', back_populates='stream', lazy=True)
+    lessons = so.relationship('Lesson', back_populates='stream')
+    timetable_entries = so.relationship('TimeTable', back_populates='stream')
 
 class FeeStructure(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
@@ -138,6 +144,8 @@ class Student(db.Model):
     fee_payments = so.relationship('FeePayment', back_populates='student', lazy=True)
     additional_fees = so.relationship('AdditionalFee', secondary=student_additional_fee, back_populates='students')
     current_term = so.relationship('Term', back_populates='students', foreign_keys=[current_term_id])
+    attendances = so.relationship('Attendance', back_populates='student')  # Add this line
+    performances = so.relationship('Performance', back_populates='student')
 
     def __repr__(self):
         return f"Student('{self.full_name}', '{self.student_id}', '{self.grade_id}', '{self.stream_id}', '{self.school_id}')"
@@ -204,3 +212,84 @@ class Audit(db.Model):
 
     def __repr__(self):
         return f"Audit('{self.action}', '{self.timestamp}')"
+
+
+class TeacherProfile(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('user.id'), nullable=False, unique=True)
+    school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
+    
+    user = so.relationship('User', back_populates='teacher_profile')
+    school = so.relationship('School', back_populates='teachers')
+    subjects = so.relationship('Subject', secondary='teacher_subject', back_populates='teachers')
+    lessons = so.relationship('Lesson', back_populates='teacher')
+    attendances = so.relationship('Attendance', back_populates='teacher')
+    timetable_entries = so.relationship('TimeTable', back_populates='teacher')
+
+class Subject(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    name = sa.Column(sa.String(50), nullable=False)
+    grade_id = sa.Column(sa.Integer, sa.ForeignKey('grade.id'), nullable=False)
+    
+    grade = so.relationship('Grade', back_populates='subjects')
+    teachers = so.relationship('TeacherProfile', secondary='teacher_subject', back_populates='subjects')
+    lessons = so.relationship('Lesson', back_populates='subject')
+    performances = so.relationship('Performance', back_populates='subject')
+    timetable_entries = so.relationship('TimeTable', back_populates='subject')
+
+teacher_subject = sa.Table('teacher_subject',
+    db.Model.metadata,
+    sa.Column('teacher_id', sa.Integer, sa.ForeignKey('teacher_profile.id'), primary_key=True),
+    sa.Column('subject_id', sa.Integer, sa.ForeignKey('subject.id'), primary_key=True)
+)
+
+class TimeTable(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    day_of_week = sa.Column(sa.String(10), nullable=False)
+    start_time = sa.Column(sa.Time, nullable=False)
+    end_time = sa.Column(sa.Time, nullable=False)
+    teacher_id = sa.Column(sa.Integer, sa.ForeignKey('teacher_profile.id'), nullable=False)
+    subject_id = sa.Column(sa.Integer, sa.ForeignKey('subject.id'), nullable=False)
+    stream_id = sa.Column(sa.Integer, sa.ForeignKey('stream.id'), nullable=False)
+    school_id = sa.Column(sa.Integer, sa.ForeignKey('school.school_id'), nullable=False)
+    
+    teacher = so.relationship('TeacherProfile', back_populates='timetable_entries')
+    subject = so.relationship('Subject', back_populates='timetable_entries')
+    stream = so.relationship('Stream', back_populates='timetable_entries')
+    school = so.relationship('School', back_populates='timetable_entries')
+
+class Lesson(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    title = sa.Column(sa.String(100), nullable=False)
+    content = sa.Column(sa.Text, nullable=False)
+    date = sa.Column(sa.Date, nullable=False)
+    teacher_id = sa.Column(sa.Integer, sa.ForeignKey('teacher_profile.id'), nullable=False)
+    subject_id = sa.Column(sa.Integer, sa.ForeignKey('subject.id'), nullable=False)
+    stream_id = sa.Column(sa.Integer, sa.ForeignKey('stream.id'), nullable=False)
+    
+    teacher = so.relationship('TeacherProfile', back_populates='lessons')
+    subject = so.relationship('Subject', back_populates='lessons')
+    stream = so.relationship('Stream', back_populates='lessons')
+    attendances = so.relationship('Attendance', back_populates='lesson')
+
+class Attendance(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    date = sa.Column(sa.Date, nullable=False)
+    status = sa.Column(sa.String(20), nullable=False)  # e.g., 'present', 'absent', 'late'
+    student_id = sa.Column(sa.String(10), sa.ForeignKey('student.student_id'), nullable=False)
+    teacher_id = sa.Column(sa.Integer, sa.ForeignKey('teacher_profile.id'), nullable=False)
+    lesson_id = sa.Column(sa.Integer, sa.ForeignKey('lesson.id'), nullable=False)
+    
+    student = so.relationship('Student', back_populates='attendances')
+    teacher = so.relationship('TeacherProfile', back_populates='attendances')
+    lesson = so.relationship('Lesson', back_populates='attendances')
+
+class Performance(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    score = sa.Column(sa.Float, nullable=False)
+    date = sa.Column(sa.Date, nullable=False)
+    student_id = sa.Column(sa.String(10), sa.ForeignKey('student.student_id'), nullable=False)
+    subject_id = sa.Column(sa.Integer, sa.ForeignKey('subject.id'), nullable=False)
+    
+    student = so.relationship('Student', back_populates='performances')
+    subject = so.relationship('Subject', back_populates='performances')

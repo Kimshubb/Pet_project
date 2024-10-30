@@ -71,12 +71,14 @@ def create_app():
     from jps_erp.students import students_bp
     from jps_erp.payments import payments_bp
     from jps_erp.settings import settings_bp
+    from jps_erp.schedules import schedules_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(students_bp)
     app.register_blueprint(payments_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(schedules_bp)
 
     from jps_erp.commands import register_commands
     register_commands(app)
