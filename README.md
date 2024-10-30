@@ -54,4 +54,7 @@ This project is licensed under the [MIT License](LICENSE).git
 ## To dos
 Use blueprints
 --Integrate exams processing
---and more
+--scheduling still not working(Timetables)
+--Integrate teacher assistant
+-- Celery workers script
+--
